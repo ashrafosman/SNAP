@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Node
+node_modules/
+npm-debug.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Databricks
+.databricks/
+
+# OS
+.DS_Store
+
+# Data (large files)
+data/*.pdf
+data/*.html
+data/hr1_full_text.txt
+data/hr1_119th.txt
+data/hr1_119th_raw.html
+
+# Keep these for deployment:
+# data/snap_qc_enriched.json
+# data/hr1_chunks.json
+# frontend/dist/
