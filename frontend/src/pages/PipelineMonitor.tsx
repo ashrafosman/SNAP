@@ -85,19 +85,19 @@ interface CheckOverride {
 const JOB_STATUS_STYLE: Record<string, { dot: string; text: string; label: string; bg?: string }> = {
   TERMINATED:    { dot: 'bg-emerald-400', text: 'text-emerald-400', label: 'Success', bg: 'bg-emerald-400/10' },
   SUCCESS:       { dot: 'bg-emerald-400', text: 'text-emerald-400', label: 'Success', bg: 'bg-emerald-400/10' },
-  RUNNING:       { dot: 'bg-cyan-400 animate-pulse', text: 'text-cyan-400', label: 'Running', bg: 'bg-cyan-400/10' },
-  PENDING:       { dot: 'bg-amber-400 animate-pulse', text: 'text-amber-400', label: 'Pending', bg: 'bg-amber-400/10' },
-  FAILED:        { dot: 'bg-red-400', text: 'text-red-400', label: 'Failed', bg: 'bg-red-400/10' },
-  INTERNAL_ERROR:{ dot: 'bg-red-400', text: 'text-red-400', label: 'Error', bg: 'bg-red-400/10' },
+  RUNNING:       { dot: 'bg-cyan-400 animate-pulse', text: 'text-cyan-700', label: 'Running', bg: 'bg-cyan-400/10' },
+  PENDING:       { dot: 'bg-amber-400 animate-pulse', text: 'text-amber-700', label: 'Pending', bg: 'bg-amber-400/10' },
+  FAILED:        { dot: 'bg-red-400', text: 'text-red-600', label: 'Failed', bg: 'bg-red-400/10' },
+  INTERNAL_ERROR:{ dot: 'bg-red-400', text: 'text-red-600', label: 'Error', bg: 'bg-red-400/10' },
   NEVER_RUN:     { dot: 'bg-gray-400', text: 'text-gray-500', label: 'Never Run' },
   UNKNOWN:       { dot: 'bg-gray-400', text: 'text-gray-500', label: 'Unknown' },
   UNAVAILABLE:   { dot: 'bg-gray-400', text: 'text-gray-500', label: 'Unavailable' },
 };
 
 const SEVERITY_COLORS: Record<string, string> = {
-  CRITICAL: 'text-red-400 bg-red-400/10 border-red-400/30',
+  CRITICAL: 'text-red-700 bg-red-50 border-red-200',
   HIGH: 'text-orange-400 bg-orange-400/10 border-orange-400/30',
-  MEDIUM: 'text-amber-400 bg-amber-400/10 border-amber-400/30',
+  MEDIUM: 'text-amber-700 bg-amber-50 border-amber-200',
   LOW: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30',
 };
 
@@ -122,20 +122,20 @@ function JobStatusBadge({ job, onTrigger, running }: { job?: JobInfo; onTrigger?
             </span>
           )}
           {isRunning && (
-            <Loader2 className="w-3 h-3 text-cyan-400 animate-spin" />
+            <Loader2 className="w-3 h-3 text-cyan-700 animate-spin" />
           )}
         </div>
         {lastRun && !isRunning && (
           <p className="text-[9px] text-[#6b7280]">Last run {lastRun}</p>
         )}
         {isRunning && (
-          <p className="text-[9px] text-cyan-400">Processing records...</p>
+          <p className="text-[9px] text-cyan-700">Processing records...</p>
         )}
       </div>
       <div className="flex items-center gap-1.5">
         {job.run_url && (
           <a href={job.run_url} target="_blank" rel="noopener noreferrer"
-            className="text-[#6b7280] hover:text-white transition-colors">
+            className="text-[#6b7280] hover:text-[#022569] transition-colors">
             <ExternalLink className="w-3 h-3" />
           </a>
         )}
@@ -143,7 +143,7 @@ function JobStatusBadge({ job, onTrigger, running }: { job?: JobInfo; onTrigger?
           <button
             onClick={onTrigger}
             disabled={isRunning}
-            className={`transition-colors ${isRunning ? 'text-[#9ca3af] cursor-not-allowed' : 'text-[#6b7280] hover:text-cyan-400'}`}
+            className={`transition-colors ${isRunning ? 'text-[#9ca3af] cursor-not-allowed' : 'text-[#6b7280] hover:text-cyan-700'}`}
             title={isRunning ? 'Running...' : 'Trigger run'}
           >
             {isRunning ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
@@ -311,13 +311,13 @@ function CheckRow({
           allPassed
             ? <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
             : check.failed > 0 && displaySeverity === 'CRITICAL'
-              ? <XCircle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
-              : <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+              ? <XCircle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
+              : <AlertTriangle className="w-4 h-4 text-amber-700 mt-0.5 shrink-0" />
         )}
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={`text-xs font-semibold ${isEnabled ? 'text-white' : 'text-[#6b7280]'}`}>{check.name}</span>
+            <span className={`text-xs font-semibold ${isEnabled ? 'text-[#022569]' : 'text-[#6b7280]'}`}>{check.name}</span>
             {/* Severity selector */}
             <select
               value={displaySeverity}
@@ -335,7 +335,7 @@ function CheckRow({
         </div>
         {isEnabled && (
           <div className="text-right shrink-0">
-            <p className="text-xs font-bold text-white">{pct}%</p>
+            <p className="text-xs font-bold text-[#022569]">{pct}%</p>
             <p className="text-[9px] text-[#6b7280]">{check.passed}/{total}</p>
           </div>
         )}
@@ -354,9 +354,9 @@ function CheckRow({
           {/* Stats row */}
           <div className="flex items-center gap-3 text-[10px]">
             <span className="text-emerald-400">{check.passed} passed</span>
-            {check.failed > 0 && <span className="text-red-400">{check.failed} failed</span>}
+            {check.failed > 0 && <span className="text-red-600">{check.failed} failed</span>}
             {showExposure && check.exposure_at_risk !== undefined && check.exposure_at_risk > 0 && (
-              <span className="text-amber-400 ml-auto">
+              <span className="text-amber-700 ml-auto">
                 ${check.exposure_at_risk.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} at risk
               </span>
             )}
@@ -534,7 +534,7 @@ export default function PipelineMonitor() {
 
   if (error || !stats) {
     return (
-      <div className="flex items-center justify-center h-full text-red-400 text-sm">
+      <div className="flex items-center justify-center h-full text-red-600 text-sm">
         Failed to load pipeline stats: {error}
       </div>
     );
@@ -551,7 +551,7 @@ export default function PipelineMonitor() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-white flex items-center gap-2">
+          <h1 className="text-lg font-bold text-[#022569] flex items-center gap-2">
             Data Pipeline Monitor
             {stats.source === 'delta_table' && (
               <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-400/10 text-emerald-400 border border-emerald-400/30 font-mono">
@@ -559,7 +559,7 @@ export default function PipelineMonitor() {
               </span>
             )}
             {stats.source === 'in_memory' && (
-              <span className="text-[9px] px-2 py-0.5 rounded-full bg-amber-400/10 text-amber-400 border border-amber-400/30 font-mono">
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-mono">
                 LOCAL · In-Memory
               </span>
             )}
@@ -576,7 +576,7 @@ export default function PipelineMonitor() {
         <button
           onClick={triggerAll}
           disabled={runningLayers.size > 0}
-          className="flex items-center gap-2 bg-cyan-400/10 border border-cyan-400/30 text-cyan-400 px-4 py-2 rounded-lg text-xs font-semibold hover:bg-cyan-400/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-2 bg-cyan-400/10 border border-cyan-400/30 text-cyan-700 px-4 py-2 rounded-lg text-xs font-semibold hover:bg-cyan-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           {runningLayers.size > 0 ? (
             <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Running Pipeline...</>
@@ -609,19 +609,19 @@ export default function PipelineMonitor() {
         <div className="ml-auto flex items-center gap-4 text-[10px] text-[#6b7280]">
           <span>
             Active checks:&nbsp;
-            <span className="text-white font-semibold">
+            <span className="text-[#022569] font-semibold">
               {countActive(bronze.checks) + countActive(silver.checks) + countActive(gold.checks)}/{bronze.checks.length + silver.checks.length + gold.checks.length}
             </span>
           </span>
           <span>
             Avg pass rate:&nbsp;
-            <span className="text-white font-semibold">
+            <span className="text-[#022569] font-semibold">
               {Math.round((bronze.pass_rate + silver.pass_rate) / 2)}%
             </span>
           </span>
           <span>
             Exposure flagged:&nbsp;
-            <span className="text-amber-400 font-semibold">
+            <span className="text-amber-700 font-semibold">
               ${silver.total_exposure_at_risk.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </span>
           </span>
@@ -631,7 +631,7 @@ export default function PipelineMonitor() {
               ${gold.penalty_savings_potential.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </span>
           </span>
-          <button onClick={fetchJobs} className="ml-2 text-[#6b7280] hover:text-white transition-colors" title="Refresh job status">
+          <button onClick={fetchJobs} className="ml-2 text-[#6b7280] hover:text-[#022569] transition-colors" title="Refresh job status">
             <RefreshCw className={`w-3.5 h-3.5 ${jobsRefreshing ? 'animate-spin' : ''}`} />
           </button>
         </div>
@@ -709,9 +709,9 @@ export default function PipelineMonitor() {
           </div>
           {silver.total_exposure_at_risk > 0 && (
             <div className="mt-3 bg-amber-400/5 border border-amber-400/20 rounded-lg p-3 flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-amber-400 shrink-0" />
+              <DollarSign className="w-4 h-4 text-amber-700 shrink-0" />
               <div>
-                <p className="text-xs font-semibold text-amber-400">
+                <p className="text-xs font-semibold text-amber-700">
                   ${silver.total_exposure_at_risk.toLocaleString('en-US', { minimumFractionDigits: 2 })} total exposure
                 </p>
                 <p className="text-[10px] text-[#6b7280]">Across all Silver validation failures</p>
@@ -761,8 +761,8 @@ export default function PipelineMonitor() {
             <p className="text-[10px] font-semibold text-[#4a5260] uppercase tracking-wide">Risk Distribution</p>
             <div className="space-y-1.5">
               {[
-                { label: 'HIGH', count: gold.high_risk, color: 'bg-red-500', text: 'text-red-400' },
-                { label: 'MEDIUM', count: gold.medium_risk, color: 'bg-amber-500', text: 'text-amber-400' },
+                { label: 'HIGH', count: gold.high_risk, color: 'bg-red-500', text: 'text-red-600' },
+                { label: 'MEDIUM', count: gold.medium_risk, color: 'bg-amber-500', text: 'text-amber-700' },
                 { label: 'LOW', count: gold.low_risk, color: 'bg-emerald-500', text: 'text-emerald-400' },
               ].map(({ label, count, color, text }) => {
                 const pct = Math.round((count / gold.record_count) * 100);
@@ -788,7 +788,7 @@ export default function PipelineMonitor() {
             <div className="space-y-1 text-[10px]">
               <div className="flex justify-between">
                 <span className="text-[#6b7280]">Total H+M exposure</span>
-                <span className="text-amber-400">${gold.hm_exposure.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+                <span className="text-amber-700">${gold.hm_exposure.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[#6b7280]">Avoidable penalty (75%)</span>
