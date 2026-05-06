@@ -1,9 +1,8 @@
-import json, os, sys, tempfile, pytest
+import json, os, sys, pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 # Patch IS_DATABRICKS_APP to False so we exercise the local path
-import importlib
 os.environ.pop("DATABRICKS_APP_NAME", None)
 
 from server import config_store

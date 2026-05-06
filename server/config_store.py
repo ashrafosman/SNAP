@@ -1,5 +1,7 @@
 """Read and write app config JSON from Databricks Volume or local file."""
+import io
 import json
+import logging
 import os
 import re
 
@@ -85,7 +87,9 @@ def read_config() -> dict:
                     return json.load(f)
     except Exception:
         pass
-    return dict(_DEFAULTS)
+    if IS_DATABRICKS_APP and not os.environ.get("APP_CONFIG_VOLUME", ""):
+        logging.warning("APP_CONFIG_VOLUME env var is not set; falling back to defaults")
+    return json.loads(json.dumps(_DEFAULTS))
 
 
 def write_config(data: dict) -> dict:
@@ -93,10 +97,10 @@ def write_config(data: dict) -> dict:
     payload = json.dumps(data, indent=2).encode()
     if IS_DATABRICKS_APP:
         volume_path = os.environ.get("APP_CONFIG_VOLUME", "")
-        if volume_path:
-            import io
-            client = get_workspace_client()
-            client.files.upload(volume_path, io.BytesIO(payload), overwrite=True)
+        if not volume_path:
+            raise RuntimeError("APP_CONFIG_VOLUME env var is not set")
+        client = get_workspace_client()
+        client.files.upload(volume_path, io.BytesIO(payload), overwrite=True)
     else:
         os.makedirs(os.path.dirname(os.path.abspath(_local_path)), exist_ok=True)
         with open(_local_path, "wb") as f:
