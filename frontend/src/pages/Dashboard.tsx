@@ -94,11 +94,11 @@ function ROICalculator({ metrics }: { metrics: OverviewMetrics }) {
           <div className="mb-4">
             <div className="flex justify-between items-baseline mb-2">
               <span className="text-xs text-[#4a5260]">Current Rate</span>
-              <span className="text-lg font-bold text-red-400">{currentRate}%</span>
+              <span className="text-lg font-bold text-red-600">{currentRate}%</span>
             </div>
             <div className="flex justify-between items-baseline mb-4">
               <span className="text-xs text-[#4a5260]">Target Rate</span>
-              <span className="text-lg font-bold text-green-400">{targetRate}%</span>
+              <span className="text-lg font-bold text-green-700">{targetRate}%</span>
             </div>
           </div>
 
@@ -114,7 +114,7 @@ function ROICalculator({ metrics }: { metrics: OverviewMetrics }) {
           <div className="flex justify-between mt-2">
             <span className="text-[10px] text-[#6b7280]">1%</span>
             {markers.filter(m => m.value <= currentRate).map(m => (
-              <button key={m.value} onClick={() => setTargetRate(m.value)} className="text-[10px] text-[#2e4e84] hover:text-white transition-colors">
+              <button key={m.value} onClick={() => setTargetRate(m.value)} className="text-[10px] text-[#2e4e84] hover:text-[#022569] transition-colors">
                 {m.label}
               </button>
             ))}
@@ -122,13 +122,13 @@ function ROICalculator({ metrics }: { metrics: OverviewMetrics }) {
           </div>
 
           <div className="mt-4 text-xs text-[#4a5260]">
-            Reducing from <strong className="text-white">{currentRate}%</strong> → <strong className="text-white">{targetRate}%</strong> avoids{' '}
-            <strong className="text-white">{roi.casesAvoided}</strong> error cases
+            Reducing from <strong className="font-bold text-[#022569]">{currentRate}%</strong> → <strong className="font-bold text-[#022569]">{targetRate}%</strong> avoids{' '}
+            <strong className="font-bold text-[#022569]">{roi.casesAvoided}</strong> error cases
           </div>
 
           {roi.belowThreshold && (
             <div className="mt-3 bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2">
-              <p className="text-[11px] text-green-300 font-medium">Below {TOLERANCE}% — No federal penalties</p>
+              <p className="text-[11px] text-green-700 font-medium">Below {TOLERANCE}% — No federal penalties</p>
               <p className="text-[10px] text-[#4a5260]">State is in the safe zone at this target rate</p>
             </div>
           )}
@@ -138,30 +138,30 @@ function ROICalculator({ metrics }: { metrics: OverviewMetrics }) {
         <div className="lg:col-span-2 grid grid-cols-3 gap-4">
           <div className="bg-[#F4F4F4] border border-[#D7D7D7] rounded-xl p-4 flex flex-col items-center justify-center text-center">
             <p className="text-[10px] text-[#4a5260] uppercase tracking-wider mb-1">Current Penalty (50/50)</p>
-            <p className="text-lg font-bold text-red-400">${roi.currentPenalty5050.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+            <p className="text-lg font-bold text-red-600">${roi.currentPenalty5050.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
             <p className="text-[10px] text-[#6b7280] mt-0.5">at {currentRate}% error rate</p>
             <div className="mt-2 pt-2 border-t border-[#D7D7D7] w-full">
               <p className="text-[10px] text-[#4a5260]">At target ({targetRate}%)</p>
-              <p className={`text-sm font-bold ${roi.belowThreshold ? 'text-green-400' : 'text-amber-400'}`}>
+              <p className={`text-sm font-bold ${roi.belowThreshold ? 'text-green-700' : 'text-amber-700'}`}>
                 {roi.belowThreshold ? '$0' : `$${roi.targetPenalty5050.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
               </p>
             </div>
-            <p className="text-xs font-semibold text-green-400 mt-2">
+            <p className="text-xs font-semibold text-green-700 mt-2">
               Save ${roi.savings5050.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </p>
           </div>
 
           <div className="bg-[#F4F4F4] border border-green-500/20 rounded-xl p-4 flex flex-col items-center justify-center text-center">
             <p className="text-[10px] text-[#4a5260] uppercase tracking-wider mb-1">Post Oct 2026 (75/25)</p>
-            <p className="text-lg font-bold text-red-400">${roi.currentPenalty7525.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+            <p className="text-lg font-bold text-red-600">${roi.currentPenalty7525.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
             <p className="text-[10px] text-[#6b7280] mt-0.5">at {currentRate}% error rate</p>
             <div className="mt-2 pt-2 border-t border-[#D7D7D7] w-full">
               <p className="text-[10px] text-[#4a5260]">At target ({targetRate}%)</p>
-              <p className={`text-sm font-bold ${roi.belowThreshold ? 'text-green-400' : 'text-amber-400'}`}>
+              <p className={`text-sm font-bold ${roi.belowThreshold ? 'text-green-700' : 'text-amber-700'}`}>
                 {roi.belowThreshold ? '$0' : `$${roi.targetPenalty7525.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
               </p>
             </div>
-            <p className="text-xs font-semibold text-green-400 mt-2">
+            <p className="text-xs font-semibold text-green-700 mt-2">
               Save ${roi.savings7525.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </p>
           </div>
@@ -172,7 +172,7 @@ function ROICalculator({ metrics }: { metrics: OverviewMetrics }) {
             <p className="text-[10px] text-[#6b7280] mt-1">extra penalty avoided by acting before Oct 2026</p>
             <div className="mt-2 pt-2 border-t border-[#D7D7D7] w-full">
               <p className="text-[10px] text-[#4a5260]">Total savings at target</p>
-              <p className="text-sm font-bold text-green-400">
+              <p className="text-sm font-bold text-green-700">
                 ${roi.savings7525.toLocaleString(undefined, { maximumFractionDigits: 0 })}
               </p>
             </div>
@@ -181,7 +181,7 @@ function ROICalculator({ metrics }: { metrics: OverviewMetrics }) {
           <div className="col-span-3 bg-[#F4F4F4] border border-[#D7D7D7] rounded-xl p-3">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-[#4a5260]">Penalty zone: errors above {TOLERANCE}% threshold</span>
-              <span className="text-xs font-medium text-white">{roi.currentPenaltyCases} → {roi.targetPenaltyCases} penalized cases</span>
+              <span className="text-xs font-medium text-[#1f2330]">{roi.currentPenaltyCases} → {roi.targetPenaltyCases} penalized cases</span>
             </div>
             <div className="w-full h-3 bg-[#e5e7eb] rounded-full overflow-hidden relative">
               {/* Threshold marker */}
@@ -204,7 +204,7 @@ function ROICalculator({ metrics }: { metrics: OverviewMetrics }) {
               />
             </div>
             <div className="flex justify-between mt-1">
-              <span className="text-[10px] text-green-400">
+              <span className="text-[10px] text-green-700">
                 {roi.belowThreshold ? 'Target below threshold — $0 penalty' : `${roi.currentPenaltyCases - roi.targetPenaltyCases} penalty cases eliminated`}
               </span>
               <span className="text-[10px] text-[#6b7280]">{TOLERANCE}% federal threshold</span>
@@ -267,14 +267,14 @@ export default function Dashboard() {
           title="High-Risk Cases"
           value={metrics.high_risk}
           icon={AlertTriangle}
-          color="text-red-400"
+          color="text-red-600"
           subtitle={`${metrics.medium_risk} medium-risk`}
         />
         <KPICard
           title="$ QC Exposure"
           value={`$${metrics.total_exposure_dollars.toLocaleString()}`}
           icon={DollarSign}
-          color="text-amber-400"
+          color="text-amber-700"
           subtitle={`Avg $${metrics.avg_error_dollars.toFixed(0)}/case`}
         />
         <KPICard
@@ -288,7 +288,7 @@ export default function Dashboard() {
           title="Cases Reviewed"
           value={`${reviewProgress}%`}
           icon={CheckCircle2}
-          color="text-green-400"
+          color="text-green-700"
           subtitle={`${metrics.reviewed_cases} of ${metrics.total_cases}`}
         />
       </div>
@@ -297,21 +297,21 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2 bg-white border border-green-500/25 rounded-xl p-5 flex items-start gap-4">
           <div className="w-10 h-10 rounded-lg bg-green-500/15 border border-green-500/30 flex items-center justify-center shrink-0">
-            <ShieldCheck className="w-5 h-5 text-green-400" />
+            <ShieldCheck className="w-5 h-5 text-green-700" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-green-300">Penalty Avoidance Opportunity — Act Before Oct 2026</p>
+            <p className="text-sm font-semibold text-green-700">Penalty Avoidance Opportunity — Act Before Oct 2026</p>
             <p className="text-xs text-[#4a5260] mt-1 leading-relaxed">
-              Michigan's cost-share shifts from <strong className="text-white">50% → 75%</strong> of each QC error dollar on Oct 1, 2026.
-              Correcting the <strong className="text-white">{metrics.high_risk + metrics.medium_risk} HIGH/MEDIUM cases</strong> before QC review saves Michigan{' '}
-              <strong className="text-green-300">${metrics.penalty_savings_potential.toLocaleString()}</strong> in state cost-share.
-              Inaction adds <strong className="text-red-300">${metrics.penalty_additional_risk.toLocaleString()}</strong> in new exposure from the 25pp rate increase alone.
+              Michigan's cost-share shifts from <strong className="font-bold text-[#022569]">50% → 75%</strong> of each QC error dollar on Oct 1, 2026.
+              Correcting the <strong className="font-bold text-[#022569]">{metrics.high_risk + metrics.medium_risk} HIGH/MEDIUM cases</strong> before QC review saves Michigan{' '}
+              <strong className="text-green-700">${metrics.penalty_savings_potential.toLocaleString()}</strong> in state cost-share.
+              Inaction adds <strong className="text-red-600">${metrics.penalty_additional_risk.toLocaleString()}</strong> in new exposure from the 25pp rate increase alone.
             </p>
           </div>
         </div>
         <div className="bg-white border border-[#D7D7D7] rounded-xl p-5 flex flex-col justify-center items-center text-center">
           <p className="text-xs text-[#4a5260] uppercase tracking-wider mb-2">Projected Penalty Savings</p>
-          <p className="text-3xl font-bold text-green-400">${metrics.penalty_savings_potential.toLocaleString()}</p>
+          <p className="text-3xl font-bold text-green-700">${metrics.penalty_savings_potential.toLocaleString()}</p>
           <p className="text-xs text-[#4a5260] mt-1">if HIGH+MEDIUM corrected @ new 75% rate</p>
           <div className="mt-3 w-full bg-[#e5e7eb] rounded-full h-1.5">
             <div
@@ -421,12 +421,12 @@ export default function Dashboard() {
 
       {/* Policy alert */}
       <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-start gap-3">
-        <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+        <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-semibold text-amber-300">Policy Action Required — October 2026</p>
+          <p className="text-sm font-semibold text-amber-600">Policy Action Required — October 2026</p>
           <p className="text-xs text-[#4a5260] mt-1">
             Federal SNAP administrative cost-share shifts from 50/50 to 25/75 on Oct 1, 2026 — every QC error dollar now costs Michigan $0.75 instead of $0.50.
-            January 2027 Medicaid work requirements + twice-yearly redeterminations put <strong className="text-white">40,000 SNAP recipients</strong> at procedural churn risk.
+            January 2027 Medicaid work requirements + twice-yearly redeterminations put <strong className="font-bold text-[#022569]">40,000 SNAP recipients</strong> at procedural churn risk.
             Use the AI Assistant tab to analyze specific cases and identify systemic error patterns.
           </p>
         </div>
@@ -435,15 +435,15 @@ export default function Dashboard() {
       {/* Quick stats row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white border border-[#D7D7D7] rounded-xl p-4 text-center">
-          <p className="text-2xl font-bold text-red-400">{metrics.flagged_cases}</p>
+          <p className="text-2xl font-bold text-red-600">{metrics.flagged_cases}</p>
           <p className="text-xs text-[#4a5260] mt-1">Cases with data warnings</p>
         </div>
         <div className="bg-white border border-[#D7D7D7] rounded-xl p-4 text-center">
-          <p className="text-2xl font-bold text-amber-400">{metrics.cases_needing_review}</p>
+          <p className="text-2xl font-bold text-amber-700">{metrics.cases_needing_review}</p>
           <p className="text-xs text-[#4a5260] mt-1">Cases needing review</p>
         </div>
         <div className="bg-white border border-[#D7D7D7] rounded-xl p-4 text-center">
-          <p className="text-2xl font-bold text-green-400">{metrics.reviewed_cases}</p>
+          <p className="text-2xl font-bold text-green-700">{metrics.reviewed_cases}</p>
           <p className="text-xs text-[#4a5260] mt-1">Cases reviewed</p>
         </div>
         <div className="bg-white border border-[#D7D7D7] rounded-xl p-4 text-center">
