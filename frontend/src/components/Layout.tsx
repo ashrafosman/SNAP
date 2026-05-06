@@ -1,12 +1,16 @@
 import { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ClipboardList, MessageSquare, ShieldAlert, ChevronDown, User, Layers, Settings } from 'lucide-react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import {
+  LayoutDashboard, ClipboardList, MessageSquare,
+  Layers, Settings, Database, ChevronDown, ShieldAlert,
+} from 'lucide-react';
 import { useRole, ROLES, type Role } from '../context/RoleContext';
 import { useBranding } from '../context/AppConfigContext';
 
 const ALL_NAV = [
   { to: '/' as const,         icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/queue' as const,    icon: ClipboardList,   label: 'Case Queue' },
+  { to: '/catalog' as const,  icon: Database,        label: 'Data Catalog' },
   { to: '/chat' as const,     icon: MessageSquare,   label: 'AI Assistant' },
   { to: '/pipeline' as const, icon: Layers,          label: 'Pipeline' },
   { to: '/settings' as const, icon: Settings,        label: 'Settings' },
@@ -14,22 +18,27 @@ const ALL_NAV = [
 
 const ROLE_ORDER: Role[] = ['caseworker', 'supervisor', 'executive', 'data_engineer'];
 
-const ROLE_COLORS: Record<Role, { dot: string; bg: string; border: string; text: string }> = {
-  caseworker:   { dot: 'bg-[#6366f1]', bg: 'bg-[#6366f1]/10', border: 'border-[#6366f1]/30', text: 'text-[#6366f1]' },
-  supervisor:   { dot: 'bg-amber-400', bg: 'bg-amber-400/10',  border: 'border-amber-400/30',  text: 'text-amber-400' },
-  executive:    { dot: 'bg-green-400', bg: 'bg-green-400/10',  border: 'border-green-400/30',  text: 'text-green-400' },
-  data_engineer: { dot: 'bg-cyan-400',  bg: 'bg-cyan-400/10',   border: 'border-cyan-400/30',   text: 'text-cyan-400' },
+const ROLE_DOT: Record<Role, string> = {
+  caseworker:    '#6366f1',
+  supervisor:    '#f59e0b',
+  executive:     '#22c55e',
+  data_engineer: '#a78bfa',
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { role, setRole } = useRole();
   const branding = useBranding();
   const navigate = useNavigate();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
 
   const roleDef = ROLES[role];
-  const colors = ROLE_COLORS[role];
-  const visibleNav = ALL_NAV.filter(n => roleDef.nav.includes(n.to));
+  const dotColor = ROLE_DOT[role];
+  const visibleNav = ALL_NAV.filter(n => (roleDef.nav as string[]).includes(n.to));
+
+  const currentNav = ALL_NAV.find(n =>
+    n.to === '/' ? location.pathname === '/' : location.pathname.startsWith(n.to)
+  );
 
   const switchRole = (r: Role) => {
     setRole(r);
@@ -38,54 +47,89 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex w-full min-h-screen bg-[#0f0f13]">
-      {/* Sidebar */}
-      <aside className="w-56 shrink-0 border-r border-[#27272a] flex flex-col py-6 px-3 bg-[#0c0c10]">
+    <div className="min-h-screen bg-[#F4F4F4]">
 
-        {/* Logo */}
-        <div className="px-3 mb-5">
-          <div className="flex items-center gap-2">
-            <ShieldAlert className="w-5 h-5" style={{ color: branding.accent_color }} />
-            <span className="text-sm font-bold tracking-tight">{branding.program_name}</span>
+      {/* ── Top nav ── */}
+      <header className="fixed top-0 left-0 right-0 h-16 bg-[#2e4e84] flex items-stretch z-50 border-b border-black/10">
+
+        {/* Brand */}
+        <div className="flex items-center gap-3 px-5 border-r border-white/[.14] shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-[#f1ad02] flex items-center justify-center shrink-0">
+            <ShieldAlert className="w-5 h-5 text-[#1f1611]" />
           </div>
-          <p className="text-[10px] text-[#71717a] mt-1 leading-tight">{branding.tagline} — {branding.state}</p>
+          <div>
+            <p className="text-[9.5px] text-white/[.65] uppercase tracking-[.14em] font-bold leading-none">
+              {branding.state} · {branding.agency_name}
+            </p>
+            <p className="text-[13.5px] font-extrabold text-white mt-0.5 leading-tight">
+              {branding.program_name}
+            </p>
+          </div>
         </div>
 
-        {/* Role picker */}
-        <div className="px-1 mb-5 relative">
+        {/* Nav links */}
+        <nav className="flex-1 flex items-center gap-1 px-3 overflow-x-auto">
+          {visibleNav.map(({ to, icon: Icon, label }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to === '/'}
+              className={({ isActive }) =>
+                `flex items-center gap-2 px-3.5 py-2 rounded-lg text-[13.5px] font-semibold whitespace-nowrap transition-colors ${
+                  isActive
+                    ? 'bg-[#f1ad02] text-[#1f1611] font-extrabold'
+                    : 'text-white/80 hover:bg-white/10 hover:text-white'
+                }`
+              }
+            >
+              <Icon className="w-4 h-4 shrink-0" />
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* Role chip + Powered by Databricks */}
+        <div className="flex items-center gap-4 px-5 border-l border-white/[.12] shrink-0 relative">
           <button
+            type="button"
             onClick={() => setOpen(o => !o)}
-            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg border transition-colors ${colors.bg} ${colors.border}`}
+            className="flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3.5 py-1.5 hover:bg-white/[.18] transition-colors"
           >
-            <div className={`w-2 h-2 rounded-full shrink-0 ${colors.dot}`} />
-            <div className="flex-1 min-w-0 text-left">
-              <p className={`text-xs font-semibold ${colors.text}`}>{roleDef.label}</p>
-              <p className="text-[9px] text-[#52525b] truncate">{roleDef.tagline}</p>
-            </div>
-            <ChevronDown className={`w-3.5 h-3.5 text-[#52525b] shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+            <div className="w-2 h-2 rounded-full shrink-0" style={{ background: dotColor }} />
+            <span className="text-[12.5px] font-bold" style={{ color: dotColor }}>
+              {roleDef.label}
+            </span>
+            <ChevronDown className={`w-3 h-3 text-white/50 transition-transform ${open ? 'rotate-180' : ''}`} />
           </button>
 
+          <span className="text-[10px] font-semibold text-white/50 uppercase tracking-[.06em] whitespace-nowrap hidden sm:block">
+            Powered by Databricks
+          </span>
+
+          {/* Role dropdown */}
           {open && (
             <>
-              {/* Backdrop */}
               <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-              {/* Dropdown */}
-              <div className="absolute left-0 right-0 top-full mt-1 z-20 bg-[#18181f] border border-[#27272a] rounded-lg overflow-hidden shadow-xl">
+              <div className="absolute top-[calc(100%+8px)] right-0 z-20 w-56 bg-white border border-[#e5e7eb] rounded-xl shadow-[0_8px_24px_rgba(2,37,105,.18)] p-1.5">
+                <p className="text-[10px] uppercase tracking-[.1em] text-[#9ca3af] font-bold px-2.5 py-1.5">
+                  Switch role
+                </p>
                 {ROLE_ORDER.map(r => {
                   const def = ROLES[r];
-                  const c = ROLE_COLORS[r];
+                  const dc = ROLE_DOT[r];
                   return (
                     <button
                       key={r}
+                      type="button"
                       onClick={() => switchRole(r)}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-[#27272a] ${role === r ? 'bg-[#27272a]/60' : ''}`}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-colors hover:bg-[#eaf0f9] ${role === r ? 'bg-[#eaf0f9]' : ''}`}
                     >
-                      <div className={`w-2 h-2 rounded-full shrink-0 ${c.dot}`} />
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: dc }} />
                       <div className="flex-1 min-w-0">
-                        <p className={`text-xs font-semibold ${c.text}`}>{def.label}</p>
-                        <p className="text-[9px] text-[#52525b] truncate">{def.tagline}</p>
+                        <p className="text-[13px] font-bold text-[#022569]">{def.label}</p>
+                        <p className="text-[11px] text-[#4a5260] truncate">{def.tagline}</p>
                       </div>
-                      {role === r && <div className="w-1 h-1 rounded-full bg-white/40 shrink-0" />}
+                      {role === r && <span className="text-[#2e4e84] text-sm font-bold">✓</span>}
                     </button>
                   );
                 })}
@@ -93,42 +137,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </>
           )}
         </div>
+      </header>
 
-        {/* Nav */}
-        <nav className="space-y-1">
-          {visibleNav.map(({ to, icon: Icon, label }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={to === '/'}
-              className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-                  isActive
-                    ? 'bg-[#1e1e2a] text-white font-medium'
-                    : 'text-[#71717a] hover:text-white hover:bg-[#18181f]'
-                }`
-              }
-            >
-              <Icon className="w-4 h-4" />
-              {label}
-            </NavLink>
-          ))}
-        </nav>
+      {/* ── Breadcrumb strip ── */}
+      <div
+        className="fixed top-16 left-0 right-0 h-11 bg-white border-b border-[#D7D7D7] flex items-center gap-2 px-7 z-40 text-sm text-[#4a5260]"
+        style={{ borderTop: '3px solid #f1ad02' }}
+      >
+        <span>Home</span>
+        <span className="text-[#c9d0d8]">›</span>
+        <span className="font-bold text-[#022569]">{currentNav?.label ?? 'Cases'}</span>
+      </div>
 
-        {/* Role hint at bottom */}
-        <div className="mt-auto px-3 pt-4 border-t border-[#27272a]">
-          <div className="flex items-center gap-1.5 mb-2">
-            <User className="w-3 h-3 text-[#3f3f46]" />
-            <span className={`text-[10px] font-medium ${colors.text}`}>{roleDef.label} view</span>
-          </div>
-          <p className="text-[10px] text-[#52525b] leading-relaxed">
-            {branding.footer_alert}
-          </p>
-        </div>
-      </aside>
-
-      {/* Main content */}
-      <main className="flex-1 overflow-auto">
+      {/* ── Content (offset: 64px nav + 44px breadcrumb = 108px) ── */}
+      <main className="pt-[108px] min-h-screen bg-[#F4F4F4]">
         {children}
       </main>
     </div>
