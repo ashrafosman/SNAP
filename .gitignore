@@ -20,9 +20,10 @@ npm-debug.log*
 # OS
 .DS_Store
 
-# Data (large files)
+# Data (large files and local config)
 data/*.pdf
 data/*.html
+data/app_config.json
 data/hr1_full_text.txt
 data/hr1_119th.txt
 data/hr1_119th_raw.html
