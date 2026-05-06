@@ -31,7 +31,7 @@ export function AppConfigProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     api.settings.getConfig()
       .then(setConfig)
-      .catch(() => {/* keep defaults on error */})
+      .catch((err) => { console.error('Failed to load app config, using defaults:', err); })
       .finally(() => setLoading(false));
   }, []);
 
