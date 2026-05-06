@@ -5,10 +5,11 @@ import { useRole, ROLES, type Role } from '../context/RoleContext';
 import { useBranding } from '../context/AppConfigContext';
 
 const ALL_NAV = [
-  { to: '/' as const,        icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/queue' as const,   icon: ClipboardList,   label: 'Case Queue' },
-  { to: '/chat' as const,    icon: MessageSquare,   label: 'AI Assistant' },
-  { to: '/pipeline' as const, icon: Layers,         label: 'Pipeline' },
+  { to: '/' as const,         icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/queue' as const,    icon: ClipboardList,   label: 'Case Queue' },
+  { to: '/chat' as const,     icon: MessageSquare,   label: 'AI Assistant' },
+  { to: '/pipeline' as const, icon: Layers,          label: 'Pipeline' },
+  { to: '/settings' as const, icon: Settings,        label: 'Settings' },
 ];
 
 const ROLE_ORDER: Role[] = ['caseworker', 'supervisor', 'executive', 'data_engineer'];

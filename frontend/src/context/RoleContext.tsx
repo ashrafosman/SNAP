@@ -6,7 +6,7 @@ export interface RoleDef {
   label: string;
   tagline: string;
   defaultPath: string;
-  nav: Array<'/' | '/queue' | '/chat' | '/pipeline'>;
+  nav: Array<'/' | '/queue' | '/chat' | '/pipeline' | '/settings'>;
   accent: string;
 }
 
@@ -36,7 +36,7 @@ export const ROLES: Record<Role, RoleDef> = {
     label: 'Data Engineer',
     tagline: 'Pipeline health & data quality',
     defaultPath: '/pipeline',
-    nav: ['/pipeline'],
+    nav: ['/pipeline', '/settings'],
     accent: 'text-cyan-400',
   },
 };
