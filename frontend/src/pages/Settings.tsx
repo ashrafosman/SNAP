@@ -37,18 +37,18 @@ export default function Settings() {
   return (
     <div className="p-6 max-w-4xl">
       <h1 className="text-xl font-bold mb-1">Settings</h1>
-      <p className="text-sm text-[#71717a] mb-6">Configure branding, data sources, and use cases for this deployment.</p>
+      <p className="text-sm text-[#4a5260] mb-6">Configure branding, data sources, and use cases for this deployment.</p>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-[#27272a]">
+      <div className="flex gap-1 mb-6 border-b border-[#D7D7D7]">
         {(['branding', 'data_sources', 'use_cases'] as Tab[]).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`px-4 py-2 text-sm font-medium rounded-t transition-colors ${
               tab === t
-                ? 'bg-[#18181f] text-white border-b-2 border-[#ef4444]'
-                : 'text-[#71717a] hover:text-white'
+                ? 'bg-[#F4F4F4] text-white border-b-2 border-[#ef4444]'
+                : 'text-[#4a5260] hover:text-white'
             }`}
           >
             {t === 'branding' ? 'Branding' : t === 'data_sources' ? 'Data Sources' : 'Use Cases'}
@@ -100,55 +100,55 @@ function BrandingTab({ draft, setDraft }: { draft: AppConfig; setDraft: (d: AppC
           { key: 'tagline' as const, label: 'Tagline', placeholder: 'Early Warning System' },
         ].map(({ key, label, placeholder }) => (
           <div key={key}>
-            <label className="block text-xs font-medium text-[#a1a1aa] mb-1">{label}</label>
+            <label className="block text-xs font-medium text-[#4a5260] mb-1">{label}</label>
             <input
               type="text"
               value={draft[key] as string}
               onChange={e => set(key, e.target.value)}
               placeholder={placeholder}
-              className="w-full bg-[#18181f] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#52525b]"
+              className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#2e4e84]"
             />
           </div>
         ))}
         <div>
-          <label className="block text-xs font-medium text-[#a1a1aa] mb-1">Accent Color</label>
+          <label className="block text-xs font-medium text-[#4a5260] mb-1">Accent Color</label>
           <div className="flex items-center gap-3">
             <input
               type="color"
               value={draft.accent_color}
               onChange={e => set('accent_color', e.target.value)}
-              className="w-10 h-10 rounded cursor-pointer border border-[#27272a] bg-transparent"
+              className="w-10 h-10 rounded cursor-pointer border border-[#D7D7D7] bg-transparent"
             />
             <input
               type="text"
               value={draft.accent_color}
               onChange={e => set('accent_color', e.target.value)}
-              className="flex-1 bg-[#18181f] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-[#52525b]"
+              className="flex-1 bg-[#F4F4F4] border border-[#D7D7D7] rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-[#2e4e84]"
             />
           </div>
         </div>
         <div>
-          <label className="block text-xs font-medium text-[#a1a1aa] mb-1">Footer Alert</label>
+          <label className="block text-xs font-medium text-[#4a5260] mb-1">Footer Alert</label>
           <textarea
             value={draft.footer_alert}
             onChange={e => set('footer_alert', e.target.value)}
             rows={3}
-            className="w-full bg-[#18181f] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#52525b] resize-none"
+            className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#2e4e84] resize-none"
           />
         </div>
       </div>
 
       {/* Live preview */}
       <div className="col-span-2 lg:col-span-1">
-        <p className="text-xs font-medium text-[#a1a1aa] mb-3">Sidebar Preview</p>
-        <div className="w-48 bg-[#0c0c10] border border-[#27272a] rounded-xl p-4">
+        <p className="text-xs font-medium text-[#4a5260] mb-3">Sidebar Preview</p>
+        <div className="w-48 bg-white border border-[#D7D7D7] rounded-xl p-4">
           <div className="flex items-center gap-2 mb-1">
             <ShieldAlert className="w-4 h-4" style={{ color: draft.accent_color }} />
             <span className="text-xs font-bold">{draft.program_name || 'Program Name'}</span>
           </div>
-          <p className="text-[10px] text-[#71717a] mb-4">{draft.tagline} — {draft.state}</p>
-          <div className="border-t border-[#27272a] pt-3">
-            <p className="text-[10px] text-[#52525b] leading-relaxed">{draft.footer_alert}</p>
+          <p className="text-[10px] text-[#4a5260] mb-4">{draft.tagline} — {draft.state}</p>
+          <div className="border-t border-[#D7D7D7] pt-3">
+            <p className="text-[10px] text-[#6b7280] leading-relaxed">{draft.footer_alert}</p>
           </div>
         </div>
       </div>
@@ -181,10 +181,10 @@ function DataSourcesTab({ draft, setDraft }: { draft: AppConfig; setDraft: (d: A
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <p className="text-sm text-[#71717a]">Configure the data intake feeds for this deployment.</p>
+        <p className="text-sm text-[#4a5260]">Configure the data intake feeds for this deployment.</p>
         <button
           onClick={() => { setEditing({ ...EMPTY_DS }); setIsNew(true); }}
-          className="px-3 py-1.5 bg-[#18181f] border border-[#27272a] rounded-lg text-xs text-white hover:bg-[#27272a] transition-colors flex items-center gap-1"
+          className="px-3 py-1.5 bg-[#F4F4F4] border border-[#D7D7D7] rounded-lg text-xs text-white hover:bg-[#eaf0f9] transition-colors flex items-center gap-1"
         >
           <Database className="w-3 h-3" /> Add Source
         </button>
@@ -201,7 +201,7 @@ function DataSourcesTab({ draft, setDraft }: { draft: AppConfig; setDraft: (d: A
 
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-left text-xs text-[#52525b] border-b border-[#27272a]">
+          <tr className="text-left text-xs text-[#6b7280] border-b border-[#D7D7D7]">
             <th className="pb-2 pr-4">Name</th>
             <th className="pb-2 pr-4">Domain</th>
             <th className="pb-2 pr-4">System</th>
@@ -213,11 +213,11 @@ function DataSourcesTab({ draft, setDraft }: { draft: AppConfig; setDraft: (d: A
           {draft.data_sources.map(ds => (
             <tr key={ds.id} className="border-b border-[#1a1a22]">
               <td className="py-2 pr-4 text-white">{ds.name}</td>
-              <td className="py-2 pr-4 text-[#a1a1aa]">{ds.domain}</td>
-              <td className="py-2 pr-4 text-[#71717a] text-xs">{ds.system}</td>
-              <td className="py-2 pr-4 text-[#71717a] text-xs">{ds.cadence}</td>
+              <td className="py-2 pr-4 text-[#4a5260]">{ds.domain}</td>
+              <td className="py-2 pr-4 text-[#4a5260] text-xs">{ds.system}</td>
+              <td className="py-2 pr-4 text-[#4a5260] text-xs">{ds.cadence}</td>
               <td className="py-2 flex gap-2">
-                <button onClick={() => { setEditing({ ...ds }); setIsNew(false); }} className="text-xs text-[#6366f1] hover:underline">Edit</button>
+                <button onClick={() => { setEditing({ ...ds }); setIsNew(false); }} className="text-xs text-[#2e4e84] hover:underline">Edit</button>
                 <button onClick={() => remove(ds.id)} className="text-xs text-red-500 hover:underline">Delete</button>
               </td>
             </tr>
@@ -237,7 +237,7 @@ function DataSourceForm({ ds, onChange, onSave, onCancel }: {
   const set = (key: keyof DataSource, val: string) => onChange({ ...ds, [key]: val });
 
   return (
-    <div className="bg-[#12121a] border border-[#27272a] rounded-xl p-4 mb-4 grid grid-cols-2 gap-3">
+    <div className="bg-[#12121a] border border-[#D7D7D7] rounded-xl p-4 mb-4 grid grid-cols-2 gap-3">
       {([
         ['id', 'ID (slug)'],
         ['name', 'Name'],
@@ -246,29 +246,29 @@ function DataSourceForm({ ds, onChange, onSave, onCancel }: {
         ['cadence', 'Cadence'],
       ] as [keyof DataSource, string][]).map(([key, label]) => (
         <div key={key}>
-          <label className="block text-xs text-[#71717a] mb-1">{label}</label>
+          <label className="block text-xs text-[#4a5260] mb-1">{label}</label>
           <input
             value={ds[key]}
             onChange={e => set(key, e.target.value)}
-            className="w-full bg-[#18181f] border border-[#27272a] rounded px-2 py-1.5 text-sm text-white focus:outline-none"
+            className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded px-2 py-1.5 text-sm text-white focus:outline-none"
           />
         </div>
       ))}
       <div className="col-span-2">
-        <label className="block text-xs text-[#71717a] mb-1">Description</label>
+        <label className="block text-xs text-[#4a5260] mb-1">Description</label>
         <textarea
           value={ds.description}
           onChange={e => set('description', e.target.value)}
           rows={2}
-          className="w-full bg-[#18181f] border border-[#27272a] rounded px-2 py-1.5 text-sm text-white focus:outline-none resize-none"
+          className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded px-2 py-1.5 text-sm text-white focus:outline-none resize-none"
         />
       </div>
       <div className="col-span-2 flex gap-2 justify-end">
-        <button onClick={onCancel} className="px-3 py-1 text-xs text-[#71717a] hover:text-white">Cancel</button>
+        <button onClick={onCancel} className="px-3 py-1 text-xs text-[#4a5260] hover:text-white">Cancel</button>
         <button
           onClick={() => onSave(ds)}
           disabled={!ds.id || !ds.name || !ds.domain}
-          className="px-3 py-1 text-xs bg-[#27272a] text-white rounded hover:bg-[#3f3f46] disabled:opacity-40"
+          className="px-3 py-1 text-xs bg-[#D7D7D7] text-white rounded hover:bg-[#9ca3af] disabled:opacity-40"
         >
           Save
         </button>
@@ -302,10 +302,10 @@ function UseCasesTab({ draft, setDraft }: { draft: AppConfig; setDraft: (d: AppC
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <p className="text-sm text-[#71717a]">Configure the analytical questions this deployment surfaces.</p>
+        <p className="text-sm text-[#4a5260]">Configure the analytical questions this deployment surfaces.</p>
         <button
           onClick={() => { setEditing({ ...EMPTY_UC }); setIsNew(true); }}
-          className="px-3 py-1.5 bg-[#18181f] border border-[#27272a] rounded-lg text-xs text-white hover:bg-[#27272a] transition-colors flex items-center gap-1"
+          className="px-3 py-1.5 bg-[#F4F4F4] border border-[#D7D7D7] rounded-lg text-xs text-white hover:bg-[#eaf0f9] transition-colors flex items-center gap-1"
         >
           <Target className="w-3 h-3" /> Add Use Case
         </button>
@@ -322,16 +322,16 @@ function UseCasesTab({ draft, setDraft }: { draft: AppConfig; setDraft: (d: AppC
 
       <div className="space-y-3">
         {draft.use_cases.map(uc => (
-          <div key={uc.id} className="bg-[#12121a] border border-[#27272a] rounded-lg p-4">
+          <div key={uc.id} className="bg-[#12121a] border border-[#D7D7D7] rounded-lg p-4">
             <div className="flex justify-between items-start mb-1">
               <p className="text-sm font-medium text-white">{uc.title}</p>
               <div className="flex gap-2 ml-4 shrink-0">
-                <button onClick={() => { setEditing({ ...uc }); setIsNew(false); }} className="text-xs text-[#6366f1] hover:underline">Edit</button>
+                <button onClick={() => { setEditing({ ...uc }); setIsNew(false); }} className="text-xs text-[#2e4e84] hover:underline">Edit</button>
                 <button onClick={() => remove(uc.id)} className="text-xs text-red-500 hover:underline">Delete</button>
               </div>
             </div>
-            <p className="text-xs text-[#71717a] mb-2">{uc.description}</p>
-            <p className="text-xs text-[#a1a1aa] italic">"{uc.analytical_question}"</p>
+            <p className="text-xs text-[#4a5260] mb-2">{uc.description}</p>
+            <p className="text-xs text-[#4a5260] italic">"{uc.analytical_question}"</p>
           </div>
         ))}
       </div>
@@ -348,44 +348,44 @@ function UseCaseForm({ uc, onChange, onSave, onCancel }: {
   const set = (key: keyof UseCase, val: string) => onChange({ ...uc, [key]: val });
 
   return (
-    <div className="bg-[#12121a] border border-[#27272a] rounded-xl p-4 mb-4 space-y-3">
+    <div className="bg-[#12121a] border border-[#D7D7D7] rounded-xl p-4 mb-4 space-y-3">
       {([
         ['id', 'ID (slug)'],
         ['title', 'Title'],
       ] as [keyof UseCase, string][]).map(([key, label]) => (
         <div key={key}>
-          <label className="block text-xs text-[#71717a] mb-1">{label}</label>
+          <label className="block text-xs text-[#4a5260] mb-1">{label}</label>
           <input
             value={uc[key]}
             onChange={e => set(key, e.target.value)}
-            className="w-full bg-[#18181f] border border-[#27272a] rounded px-2 py-1.5 text-sm text-white focus:outline-none"
+            className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded px-2 py-1.5 text-sm text-white focus:outline-none"
           />
         </div>
       ))}
       <div>
-        <label className="block text-xs text-[#71717a] mb-1">Description</label>
+        <label className="block text-xs text-[#4a5260] mb-1">Description</label>
         <textarea
           value={uc.description}
           onChange={e => set('description', e.target.value)}
           rows={2}
-          className="w-full bg-[#18181f] border border-[#27272a] rounded px-2 py-1.5 text-sm text-white focus:outline-none resize-none"
+          className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded px-2 py-1.5 text-sm text-white focus:outline-none resize-none"
         />
       </div>
       <div>
-        <label className="block text-xs text-[#71717a] mb-1">Analytical Question</label>
+        <label className="block text-xs text-[#4a5260] mb-1">Analytical Question</label>
         <textarea
           value={uc.analytical_question}
           onChange={e => set('analytical_question', e.target.value)}
           rows={2}
-          className="w-full bg-[#18181f] border border-[#27272a] rounded px-2 py-1.5 text-sm text-white focus:outline-none resize-none"
+          className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded px-2 py-1.5 text-sm text-white focus:outline-none resize-none"
         />
       </div>
       <div className="flex gap-2 justify-end">
-        <button onClick={onCancel} className="px-3 py-1 text-xs text-[#71717a] hover:text-white">Cancel</button>
+        <button onClick={onCancel} className="px-3 py-1 text-xs text-[#4a5260] hover:text-white">Cancel</button>
         <button
           onClick={() => onSave(uc)}
           disabled={!uc.id || !uc.title || !uc.analytical_question}
-          className="px-3 py-1 text-xs bg-[#27272a] text-white rounded hover:bg-[#3f3f46] disabled:opacity-40"
+          className="px-3 py-1 text-xs bg-[#D7D7D7] text-white rounded hover:bg-[#9ca3af] disabled:opacity-40"
         >
           Save
         </button>

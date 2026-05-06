@@ -89,9 +89,9 @@ const JOB_STATUS_STYLE: Record<string, { dot: string; text: string; label: strin
   PENDING:       { dot: 'bg-amber-400 animate-pulse', text: 'text-amber-400', label: 'Pending', bg: 'bg-amber-400/10' },
   FAILED:        { dot: 'bg-red-400', text: 'text-red-400', label: 'Failed', bg: 'bg-red-400/10' },
   INTERNAL_ERROR:{ dot: 'bg-red-400', text: 'text-red-400', label: 'Error', bg: 'bg-red-400/10' },
-  NEVER_RUN:     { dot: 'bg-[#52525b]', text: 'text-[#52525b]', label: 'Never Run' },
-  UNKNOWN:       { dot: 'bg-[#52525b]', text: 'text-[#52525b]', label: 'Unknown' },
-  UNAVAILABLE:   { dot: 'bg-[#52525b]', text: 'text-[#52525b]', label: 'Unavailable' },
+  NEVER_RUN:     { dot: 'bg-gray-400', text: 'text-gray-500', label: 'Never Run' },
+  UNKNOWN:       { dot: 'bg-gray-400', text: 'text-gray-500', label: 'Unknown' },
+  UNAVAILABLE:   { dot: 'bg-gray-400', text: 'text-gray-500', label: 'Unavailable' },
 };
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -117,7 +117,7 @@ function JobStatusBadge({ job, onTrigger, running }: { job?: JobInfo; onTrigger?
         <div className="flex items-center gap-1.5">
           <span className={`text-[10px] font-semibold ${style.text}`}>{style.label}</span>
           {job.duration_s != null && !isRunning && (
-            <span className="text-[9px] text-[#52525b] flex items-center gap-0.5">
+            <span className="text-[9px] text-[#6b7280] flex items-center gap-0.5">
               <Clock className="w-2.5 h-2.5" />{job.duration_s}s
             </span>
           )}
@@ -126,7 +126,7 @@ function JobStatusBadge({ job, onTrigger, running }: { job?: JobInfo; onTrigger?
           )}
         </div>
         {lastRun && !isRunning && (
-          <p className="text-[9px] text-[#52525b]">Last run {lastRun}</p>
+          <p className="text-[9px] text-[#6b7280]">Last run {lastRun}</p>
         )}
         {isRunning && (
           <p className="text-[9px] text-cyan-400">Processing records...</p>
@@ -135,7 +135,7 @@ function JobStatusBadge({ job, onTrigger, running }: { job?: JobInfo; onTrigger?
       <div className="flex items-center gap-1.5">
         {job.run_url && (
           <a href={job.run_url} target="_blank" rel="noopener noreferrer"
-            className="text-[#52525b] hover:text-white transition-colors">
+            className="text-[#6b7280] hover:text-white transition-colors">
             <ExternalLink className="w-3 h-3" />
           </a>
         )}
@@ -143,7 +143,7 @@ function JobStatusBadge({ job, onTrigger, running }: { job?: JobInfo; onTrigger?
           <button
             onClick={onTrigger}
             disabled={isRunning}
-            className={`transition-colors ${isRunning ? 'text-[#3f3f46] cursor-not-allowed' : 'text-[#52525b] hover:text-cyan-400'}`}
+            className={`transition-colors ${isRunning ? 'text-[#9ca3af] cursor-not-allowed' : 'text-[#6b7280] hover:text-cyan-400'}`}
             title={isRunning ? 'Running...' : 'Trigger run'}
           >
             {isRunning ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
@@ -181,7 +181,7 @@ function RunHistoryPanel({ layer, expanded, onToggle }: { layer: LayerKey; expan
     <div className="mb-3">
       <button
         onClick={onToggle}
-        className="flex items-center gap-1.5 text-[10px] text-[#52525b] hover:text-[#a1a1aa] transition-colors mb-1"
+        className="flex items-center gap-1.5 text-[10px] text-[#6b7280] hover:text-[#4a5260] transition-colors mb-1"
       >
         {expanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
         <History className="w-3 h-3" />
@@ -189,9 +189,9 @@ function RunHistoryPanel({ layer, expanded, onToggle }: { layer: LayerKey; expan
       </button>
       {expanded && (
         <div className="bg-[#111118] border border-[#1e1e2a] rounded-lg p-2 space-y-1">
-          {loading && <p className="text-[10px] text-[#52525b] text-center py-2">Loading...</p>}
+          {loading && <p className="text-[10px] text-[#6b7280] text-center py-2">Loading...</p>}
           {!loading && history.length === 0 && (
-            <p className="text-[10px] text-[#52525b] text-center py-2">No runs yet — trigger a run above</p>
+            <p className="text-[10px] text-[#6b7280] text-center py-2">No runs yet — trigger a run above</p>
           )}
           {history.map((run, i) => {
             const s = JOB_STATUS_STYLE[run.result_state || run.status] || JOB_STATUS_STYLE.UNKNOWN;
@@ -202,12 +202,12 @@ function RunHistoryPanel({ layer, expanded, onToggle }: { layer: LayerKey; expan
               <div key={run.run_id || i} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[#1e1e2a]/50 transition-colors">
                 <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${s.dot}`} />
                 <span className={`text-[10px] font-medium w-14 ${s.text}`}>{s.label}</span>
-                <span className="text-[10px] text-[#52525b] flex-1">{ts}</span>
+                <span className="text-[10px] text-[#6b7280] flex-1">{ts}</span>
                 {run.duration_s != null && (
-                  <span className="text-[10px] text-[#52525b]">{run.duration_s}s</span>
+                  <span className="text-[10px] text-[#6b7280]">{run.duration_s}s</span>
                 )}
                 {run.records_processed != null && (
-                  <span className="text-[10px] text-[#3f3f46]">{run.records_processed} rec</span>
+                  <span className="text-[10px] text-[#9ca3af]">{run.records_processed} rec</span>
                 )}
               </div>
             );
@@ -215,7 +215,7 @@ function RunHistoryPanel({ layer, expanded, onToggle }: { layer: LayerKey; expan
           {history.length > 0 && (
             <button
               onClick={refresh}
-              className="flex items-center gap-1 text-[9px] text-[#3f3f46] hover:text-[#71717a] transition-colors mx-auto mt-1"
+              className="flex items-center gap-1 text-[9px] text-[#9ca3af] hover:text-[#4a5260] transition-colors mx-auto mt-1"
             >
               <RefreshCw className="w-2.5 h-2.5" /> Refresh
             </button>
@@ -232,7 +232,7 @@ function PassRateRing({ rate, color }: { rate: number; color: string }) {
   const dash = (rate / 100) * circ;
   return (
     <svg width="72" height="72" className="-rotate-90">
-      <circle cx="36" cy="36" r={r} fill="none" stroke="#27272a" strokeWidth="6" />
+      <circle cx="36" cy="36" r={r} fill="none" stroke="#D7D7D7" strokeWidth="6" />
       <circle
         cx="36" cy="36" r={r} fill="none"
         stroke={color} strokeWidth="6"
@@ -259,12 +259,12 @@ function LayerHeader({
 }) {
   return (
     <div className={`flex items-center gap-4 p-4 rounded-xl border ${bgColor} mb-3`}>
-      <div className={`p-2 rounded-lg bg-[#0f0f13]`}>
+      <div className={`p-2 rounded-lg bg-[#F4F4F4]`}>
         <Icon className={`w-5 h-5 ${color}`} />
       </div>
       <div className="flex-1">
         <p className={`text-sm font-bold ${color}`}>{label}</p>
-        <p className="text-xs text-[#71717a]">{record_count.toLocaleString()} records</p>
+        <p className="text-xs text-[#4a5260]">{record_count.toLocaleString()} records</p>
       </div>
       <PassRateRing rate={pass_rate} color={ringColor} />
     </div>
@@ -302,7 +302,7 @@ function CheckRow({
         >
           {isEnabled
             ? <ToggleRight className="w-4 h-4 text-emerald-400" />
-            : <ToggleLeft className="w-4 h-4 text-[#3f3f46]" />
+            : <ToggleLeft className="w-4 h-4 text-[#9ca3af]" />
           }
         </button>
 
@@ -317,7 +317,7 @@ function CheckRow({
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={`text-xs font-semibold ${isEnabled ? 'text-white' : 'text-[#52525b]'}`}>{check.name}</span>
+            <span className={`text-xs font-semibold ${isEnabled ? 'text-white' : 'text-[#6b7280]'}`}>{check.name}</span>
             {/* Severity selector */}
             <select
               value={displaySeverity}
@@ -331,12 +331,12 @@ function CheckRow({
               <option value="LOW">LOW</option>
             </select>
           </div>
-          <p className="text-[10px] text-[#52525b] mt-0.5">{check.description}</p>
+          <p className="text-[10px] text-[#6b7280] mt-0.5">{check.description}</p>
         </div>
         {isEnabled && (
           <div className="text-right shrink-0">
             <p className="text-xs font-bold text-white">{pct}%</p>
-            <p className="text-[9px] text-[#52525b]">{check.passed}/{total}</p>
+            <p className="text-[9px] text-[#6b7280]">{check.passed}/{total}</p>
           </div>
         )}
       </div>
@@ -344,7 +344,7 @@ function CheckRow({
       {isEnabled && (
         <>
           {/* Progress bar */}
-          <div className="h-1 bg-[#27272a] rounded-full overflow-hidden">
+          <div className="h-1 bg-[#D7D7D7] rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ${allPassed ? 'bg-emerald-500' : pct > 80 ? 'bg-amber-500' : 'bg-red-500'}`}
               style={{ width: `${pct}%` }}
@@ -363,7 +363,7 @@ function CheckRow({
           </div>
 
           {/* Impact */}
-          <p className="text-[10px] text-[#52525b] italic border-t border-[#1e1e2a] pt-2">{check.impact}</p>
+          <p className="text-[10px] text-[#6b7280] italic border-t border-[#1e1e2a] pt-2">{check.impact}</p>
         </>
       )}
     </div>
@@ -526,7 +526,7 @@ export default function PipelineMonitor() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full text-[#52525b] text-sm">
+      <div className="flex items-center justify-center h-full text-[#6b7280] text-sm">
         Loading pipeline stats...
       </div>
     );
@@ -564,10 +564,10 @@ export default function PipelineMonitor() {
               </span>
             )}
           </h1>
-          <p className="text-xs text-[#52525b] mt-0.5">
+          <p className="text-xs text-[#6b7280] mt-0.5">
             Medallion architecture · {stats.total_cases} cases · SNAP QC Early Warning
             {stats.last_run_time && (
-              <span className="ml-2 text-[#3f3f46]">
+              <span className="ml-2 text-[#9ca3af]">
                 · Last pipeline run: {new Date(stats.last_run_time).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </span>
             )}
@@ -597,7 +597,7 @@ export default function PipelineMonitor() {
           const labels = { bronze: 'BRONZE · Raw Ingestion', silver: 'SILVER · Validation', gold: 'GOLD · Risk Scoring' };
           return (
             <div key={layer} className="flex items-center gap-2">
-              {i > 0 && <ChevronRight className="w-4 h-4 text-[#27272a]" />}
+              {i > 0 && <ChevronRight className="w-4 h-4 text-[#D7D7D7]" />}
               <div className="flex items-center gap-1.5">
                 <div className={`w-2 h-2 rounded-full ${colors[layer]}`} />
                 <span className={`text-xs font-semibold ${colors[layer].split(' ')[0]}`}>{labels[layer]}</span>
@@ -606,7 +606,7 @@ export default function PipelineMonitor() {
             </div>
           );
         })}
-        <div className="ml-auto flex items-center gap-4 text-[10px] text-[#52525b]">
+        <div className="ml-auto flex items-center gap-4 text-[10px] text-[#6b7280]">
           <span>
             Active checks:&nbsp;
             <span className="text-white font-semibold">
@@ -631,7 +631,7 @@ export default function PipelineMonitor() {
               ${gold.penalty_savings_potential.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </span>
           </span>
-          <button onClick={fetchJobs} className="ml-2 text-[#52525b] hover:text-white transition-colors" title="Refresh job status">
+          <button onClick={fetchJobs} className="ml-2 text-[#6b7280] hover:text-white transition-colors" title="Refresh job status">
             <RefreshCw className={`w-3.5 h-3.5 ${jobsRefreshing ? 'animate-spin' : ''}`} />
           </button>
         </div>
@@ -714,7 +714,7 @@ export default function PipelineMonitor() {
                 <p className="text-xs font-semibold text-amber-400">
                   ${silver.total_exposure_at_risk.toLocaleString('en-US', { minimumFractionDigits: 2 })} total exposure
                 </p>
-                <p className="text-[10px] text-[#52525b]">Across all Silver validation failures</p>
+                <p className="text-[10px] text-[#6b7280]">Across all Silver validation failures</p>
               </div>
             </div>
           )}
@@ -758,7 +758,7 @@ export default function PipelineMonitor() {
 
           {/* Risk distribution */}
           <div className="mt-3 bg-[#111118] border border-[#1e1e2a] rounded-lg p-3 space-y-2">
-            <p className="text-[10px] font-semibold text-[#71717a] uppercase tracking-wide">Risk Distribution</p>
+            <p className="text-[10px] font-semibold text-[#4a5260] uppercase tracking-wide">Risk Distribution</p>
             <div className="space-y-1.5">
               {[
                 { label: 'HIGH', count: gold.high_risk, color: 'bg-red-500', text: 'text-red-400' },
@@ -769,10 +769,10 @@ export default function PipelineMonitor() {
                 return (
                   <div key={label} className="flex items-center gap-2">
                     <span className={`text-[10px] font-mono w-14 ${text}`}>{label}</span>
-                    <div className="flex-1 h-1.5 bg-[#27272a] rounded-full overflow-hidden">
+                    <div className="flex-1 h-1.5 bg-[#D7D7D7] rounded-full overflow-hidden">
                       <div className={`h-full ${color} rounded-full`} style={{ width: `${pct}%` }} />
                     </div>
-                    <span className="text-[10px] text-[#52525b] w-8 text-right">{count}</span>
+                    <span className="text-[10px] text-[#6b7280] w-8 text-right">{count}</span>
                   </div>
                 );
               })}
@@ -787,15 +787,15 @@ export default function PipelineMonitor() {
             </div>
             <div className="space-y-1 text-[10px]">
               <div className="flex justify-between">
-                <span className="text-[#52525b]">Total H+M exposure</span>
+                <span className="text-[#6b7280]">Total H+M exposure</span>
                 <span className="text-amber-400">${gold.hm_exposure.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#52525b]">Avoidable penalty (75%)</span>
+                <span className="text-[#6b7280]">Avoidable penalty (75%)</span>
                 <span className="text-emerald-400 font-bold">${gold.penalty_savings_potential.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
               </div>
             </div>
-            <div className="mt-2 flex items-center gap-1 text-[10px] text-[#52525b]">
+            <div className="mt-2 flex items-center gap-1 text-[10px] text-[#6b7280]">
               <TrendingUp className="w-3 h-3" />
               Early detection before federal QC review
             </div>
