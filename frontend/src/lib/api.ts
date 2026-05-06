@@ -110,6 +110,36 @@ export interface OverviewMetrics {
   penalty_additional_risk: number;
 }
 
+export interface DataSource {
+  id: string;
+  name: string;
+  domain: string;
+  system: string;
+  description: string;
+  cadence: string;
+}
+
+export interface UseCase {
+  id: string;
+  title: string;
+  description: string;
+  analytical_question: string;
+}
+
+export interface BrandingConfig {
+  agency_name: string;
+  program_name: string;
+  state: string;
+  accent_color: string;
+  tagline: string;
+  footer_alert: string;
+}
+
+export interface AppConfig extends BrandingConfig {
+  data_sources: DataSource[];
+  use_cases: UseCase[];
+}
+
 export const api = {
   cases: {
     list: (params: Record<string, string | number | undefined> = {}): Promise<CaseListResponse> => {
@@ -161,5 +191,14 @@ export const api = {
       });
       return r;
     },
+  },
+  settings: {
+    getConfig: (): Promise<AppConfig> => fetchJson('/settings/config'),
+    saveConfig: (data: AppConfig): Promise<AppConfig> =>
+      fetchJson('/settings/config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      }),
   },
 };
