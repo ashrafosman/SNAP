@@ -60,8 +60,29 @@ function SourceCard({ source, layer, onClick }: { source: DataSource; layer?: st
   );
 }
 
+/* ─── Type badge ─── */
+const TYPE_COLORS: Record<string, string> = {
+  STRING:    'text-[#2e4e84] bg-[#eaf0f9]',
+  LONG:      'text-amber-700 bg-amber-50',
+  INT:       'text-amber-700 bg-amber-50',
+  DOUBLE:    'text-purple-700 bg-purple-50',
+  DATE:      'text-green-700 bg-green-50',
+  TIMESTAMP: 'text-green-700 bg-green-50',
+  BOOLEAN:   'text-rose-700 bg-rose-50',
+  ARRAY:     'text-[#4a5260] bg-[#F4F4F4]',
+};
+
+function TypeBadge({ type }: { type: string }) {
+  const cls = TYPE_COLORS[type] ?? 'text-[#4a5260] bg-[#F4F4F4]';
+  return (
+    <span className={`text-[10px] font-bold font-mono px-1.5 py-0.5 rounded uppercase ${cls}`}>
+      {type}
+    </span>
+  );
+}
+
 /* ─── Source detail panel ─── */
-const META_ROWS: { label: string; field: keyof DataSource }[] = [
+const META_ROWS: { label: string; field: 'domain' | 'system' | 'cadence' }[] = [
   { label: 'Domain',   field: 'domain'   },
   { label: 'System',   field: 'system'   },
   { label: 'Cadence',  field: 'cadence'  },
@@ -128,9 +149,11 @@ function SourcePanel({ source, onClose }: { source: DataSource; onClose: () => v
                     Layer
                   </td>
                   <td className="py-2.5">
-                    <span className="text-[10px] font-extrabold rounded px-1.5 py-0.5 uppercase tracking-[.04em] bg-[#78350f] text-yellow-300">
-                      Bronze
-                    </span>
+                    {source.layer && LAYER_BADGE[source.layer] && (
+                      <span className={`text-[10px] font-extrabold rounded px-1.5 py-0.5 uppercase tracking-[.04em] ${LAYER_BADGE[source.layer].bg} ${LAYER_BADGE[source.layer].text}`}>
+                        {LAYER_BADGE[source.layer].label}
+                      </span>
+                    )}
                   </td>
                 </tr>
                 <tr>
@@ -143,28 +166,68 @@ function SourcePanel({ source, onClose }: { source: DataSource; onClose: () => v
                     </span>
                   </td>
                 </tr>
+                {source.sources && source.sources.length > 0 && (
+                  <tr>
+                    <td className="py-2.5 pr-6 text-[11px] font-bold uppercase tracking-[.08em] text-[#9ca3af]">
+                      Sources
+                    </td>
+                    <td className="py-2.5">
+                      <div className="flex flex-wrap gap-1">
+                        {source.sources.map(s => (
+                          <span key={s} className="text-[10px] font-mono font-semibold bg-[#eaf0f9] text-[#2e4e84] px-1.5 py-0.5 rounded">
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </section>
 
-          {/* Schema preview placeholder */}
+          {/* Schema */}
           <section>
             <div className="flex items-center gap-2 mb-3">
               <Table2 className="w-3.5 h-3.5 text-[#9ca3af]" />
               <p className="text-[11px] font-bold uppercase tracking-[.12em] text-[#4a5260]">
                 Schema Preview
               </p>
+              {source.schema && (
+                <span className="ml-auto text-[10.5px] text-[#9ca3af]">{source.schema.length} columns</span>
+              )}
             </div>
-            <div className="bg-[#eaf0f9] border border-[#bcc9d7] rounded-xl p-5 text-center">
-              <p className="text-[12.5px] font-semibold text-[#2e4e84]">
-                Schema available via Unity Catalog
-              </p>
-              <p className="text-[11.5px] text-[#4a5260] mt-1">
-                Connect to{' '}
-                <span className="font-mono text-[#022569]">{source.system}</span>{' '}
-                to browse columns, types, and row-level stats.
-              </p>
-            </div>
+            {source.schema && source.schema.length > 0 ? (
+              <div className="border border-[#D7D7D7] rounded-xl overflow-hidden">
+                <table className="w-full text-[12px]">
+                  <thead>
+                    <tr className="bg-[#F4F4F4] border-b border-[#D7D7D7]">
+                      <th className="text-left px-3 py-2 text-[10.5px] font-bold uppercase tracking-[.08em] text-[#9ca3af] w-[38%]">Column</th>
+                      <th className="text-left px-3 py-2 text-[10.5px] font-bold uppercase tracking-[.08em] text-[#9ca3af] w-[20%]">Type</th>
+                      <th className="text-left px-3 py-2 text-[10.5px] font-bold uppercase tracking-[.08em] text-[#9ca3af]">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {source.schema.map((col, i) => (
+                      <tr key={col.column} className={i % 2 === 0 ? 'bg-white' : 'bg-[#fafafa]'}>
+                        <td className="px-3 py-2 font-mono text-[11.5px] text-[#022569] font-semibold">{col.column}</td>
+                        <td className="px-3 py-2">
+                          <TypeBadge type={col.type} />
+                        </td>
+                        <td className="px-3 py-2 text-[#4a5260]">{col.description}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="bg-[#eaf0f9] border border-[#bcc9d7] rounded-xl p-5 text-center">
+                <p className="text-[12.5px] font-semibold text-[#2e4e84]">Schema available via Unity Catalog</p>
+                <p className="text-[11.5px] text-[#4a5260] mt-1">
+                  Connect to <span className="font-mono text-[#022569]">{source.system}</span> to browse columns, types, and row-level stats.
+                </p>
+              </div>
+            )}
           </section>
 
           {/* Related use cases */}
@@ -239,6 +302,10 @@ export default function DataCatalog() {
   const [tab, setTab] = useState<MedTab>('bronze');
   const [selected, setSelected] = useState<DataSource | null>(null);
 
+  const bronzeSources = config.data_sources.filter(s => !s.layer || s.layer === 'bronze');
+  const silverSources = config.data_sources.filter(s => s.layer === 'silver');
+  const goldSources   = config.data_sources.filter(s => s.layer === 'gold');
+
   const tabs: {
     id: MedTab;
     badgeClass?: string;
@@ -247,9 +314,9 @@ export default function DataCatalog() {
     count: number | string;
     rightAlign?: boolean;
   }[] = [
-    { id: 'bronze',    badgeClass: 'bg-[#78350f] text-yellow-300', badgeLabel: 'Bronze', label: 'Raw Intake',       count: config.data_sources.length || '—' },
-    { id: 'silver',    badgeClass: 'bg-[#374151] text-[#d1d5db]',  badgeLabel: 'Silver', label: 'Cleaned & Linked', count: '—' },
-    { id: 'gold',      badgeClass: 'bg-[#713f12] text-yellow-200',  badgeLabel: 'Gold',   label: 'QC-Ready',         count: '—' },
+    { id: 'bronze',    badgeClass: 'bg-[#78350f] text-yellow-300', badgeLabel: 'Bronze', label: 'Raw Intake',       count: bronzeSources.length || '—' },
+    { id: 'silver',    badgeClass: 'bg-[#374151] text-[#d1d5db]',  badgeLabel: 'Silver', label: 'Cleaned & Linked', count: silverSources.length || '—' },
+    { id: 'gold',      badgeClass: 'bg-[#713f12] text-yellow-200',  badgeLabel: 'Gold',   label: 'QC-Ready',         count: goldSources.length || '—' },
     { id: 'use_cases', label: 'Use Cases', count: config.use_cases.length || '—', rightAlign: true },
   ];
 
@@ -328,11 +395,11 @@ export default function DataCatalog() {
         {tab === 'bronze' && (
           <>
             <p className="text-[11px] font-bold uppercase tracking-[.12em] text-[#4a5260] mb-3.5">Bronze — Raw intake feeds</p>
-            {config.data_sources.length === 0
+            {bronzeSources.length === 0
               ? <EmptyState message="No data sources configured yet. Add them in Settings → Data Sources." />
               : (
                 <div className="grid grid-cols-3 gap-3.5">
-                  {config.data_sources.map(s => (
+                  {bronzeSources.map(s => (
                     <SourceCard key={s.id} source={s} layer="bronze" onClick={() => setSelected(s)} />
                   ))}
                 </div>
@@ -344,14 +411,20 @@ export default function DataCatalog() {
         {tab === 'silver' && (
           <>
             <p className="text-[11px] font-bold uppercase tracking-[.12em] text-[#4a5260] mb-3.5">Silver — Cleaned &amp; Linked</p>
-            <EmptyState message="Silver layer — entity-resolved and cleaned records — coming soon." />
+            {silverSources.length === 0
+              ? <EmptyState message="Silver layer — entity-resolved and cleaned records — coming soon." />
+              : <div className="grid grid-cols-3 gap-3.5">{silverSources.map(s => <SourceCard key={s.id} source={s} layer="silver" onClick={() => setSelected(s)} />)}</div>
+            }
           </>
         )}
 
         {tab === 'gold' && (
           <>
             <p className="text-[11px] font-bold uppercase tracking-[.12em] text-[#4a5260] mb-3.5">Gold — QC-Ready Outputs</p>
-            <EmptyState message="Gold layer — QC-ready outputs and scored case records — coming soon." />
+            {goldSources.length === 0
+              ? <EmptyState message="Gold layer — QC-ready outputs and scored case records — coming soon." />
+              : <div className="grid grid-cols-3 gap-3.5">{goldSources.map(s => <SourceCard key={s.id} source={s} layer="gold" onClick={() => setSelected(s)} />)}</div>
+            }
           </>
         )}
 
