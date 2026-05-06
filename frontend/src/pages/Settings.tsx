@@ -268,7 +268,7 @@ function DataSourceForm({ ds, onChange, onSave, onCancel }: {
         <button
           onClick={() => onSave(ds)}
           disabled={!ds.id || !ds.name || !ds.domain}
-          className="px-3 py-1 text-xs bg-[#D7D7D7] text-[#1f2330] rounded hover:bg-[#bcc9d7] disabled:opacity-40"
+          className="px-3 py-1 text-xs bg-[#2e4e84] text-white rounded hover:bg-[#022569] disabled:opacity-40"
         >
           Save
         </button>
@@ -322,7 +322,7 @@ function UseCasesTab({ draft, setDraft }: { draft: AppConfig; setDraft: (d: AppC
 
       <div className="space-y-3">
         {draft.use_cases.map(uc => (
-          <div key={uc.id} className="bg-[#12121a] border border-[#D7D7D7] rounded-lg p-4">
+          <div key={uc.id} className="bg-white border border-[#D7D7D7] rounded-lg p-4">
             <div className="flex justify-between items-start mb-1">
               <p className="text-sm font-medium text-[#022569]">{uc.title}</p>
               <div className="flex gap-2 ml-4 shrink-0">
@@ -348,7 +348,7 @@ function UseCaseForm({ uc, onChange, onSave, onCancel }: {
   const set = (key: keyof UseCase, val: string) => onChange({ ...uc, [key]: val });
 
   return (
-    <div className="bg-[#12121a] border border-[#D7D7D7] rounded-xl p-4 mb-4 space-y-3">
+    <div className="bg-white border border-[#D7D7D7] rounded-xl p-4 mb-4 space-y-3">
       {([
         ['id', 'ID (slug)'],
         ['title', 'Title'],
@@ -385,7 +385,7 @@ function UseCaseForm({ uc, onChange, onSave, onCancel }: {
         <button
           onClick={() => onSave(uc)}
           disabled={!uc.id || !uc.title || !uc.analytical_question}
-          className="px-3 py-1 text-xs bg-[#D7D7D7] text-[#1f2330] rounded hover:bg-[#bcc9d7] disabled:opacity-40"
+          className="px-3 py-1 text-xs bg-[#2e4e84] text-white rounded hover:bg-[#022569] disabled:opacity-40"
         >
           Save
         </button>
