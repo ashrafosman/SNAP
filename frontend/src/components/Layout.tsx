@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ClipboardList, MessageSquare, ShieldAlert, ChevronDown, User, Layers } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, MessageSquare, ShieldAlert, ChevronDown, User, Layers, Settings } from 'lucide-react';
 import { useRole, ROLES, type Role } from '../context/RoleContext';
+import { useBranding } from '../context/AppConfigContext';
 
 const ALL_NAV = [
   { to: '/' as const,        icon: LayoutDashboard, label: 'Dashboard' },
@@ -21,6 +22,7 @@ const ROLE_COLORS: Record<Role, { dot: string; bg: string; border: string; text:
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { role, setRole } = useRole();
+  const branding = useBranding();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
@@ -42,10 +44,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* Logo */}
         <div className="px-3 mb-5">
           <div className="flex items-center gap-2">
-            <ShieldAlert className="w-5 h-5 text-[#ef4444]" />
-            <span className="text-sm font-bold tracking-tight">SNAP QC Guard</span>
+            <ShieldAlert className="w-5 h-5" style={{ color: branding.accent_color }} />
+            <span className="text-sm font-bold tracking-tight">{branding.program_name}</span>
           </div>
-          <p className="text-[10px] text-[#71717a] mt-1 leading-tight">Early Warning System — Michigan</p>
+          <p className="text-[10px] text-[#71717a] mt-1 leading-tight">{branding.tagline} — {branding.state}</p>
         </div>
 
         {/* Role picker */}
@@ -119,7 +121,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <span className={`text-[10px] font-medium ${colors.text}`}>{roleDef.label} view</span>
           </div>
           <p className="text-[10px] text-[#52525b] leading-relaxed">
-            Oct 2026: SNAP cost-share shifts to 25/75. 40K recipients at risk.
+            {branding.footer_alert}
           </p>
         </div>
       </aside>
