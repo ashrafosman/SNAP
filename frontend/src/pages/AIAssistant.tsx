@@ -105,7 +105,7 @@ export default function AIAssistant() {
                   <button
                     key={q}
                     onClick={() => send(q)}
-                    className="block w-full text-left px-4 py-3 rounded-lg border border-[#D7D7D7] text-sm text-[#4a5260] hover:border-[#2e4e84]/40 hover:text-white transition-colors"
+                    className="block w-full text-left px-4 py-3 rounded-lg border border-[#D7D7D7] text-sm text-[#4a5260] hover:border-[#2e4e84] hover:bg-[#eaf0f9] hover:text-[#022569] transition-colors"
                   >
                     {q}
                   </button>
@@ -122,8 +122,8 @@ export default function AIAssistant() {
               )}
               <div className={`max-w-[80%] rounded-xl px-4 py-3 text-sm leading-relaxed ${
                 m.role === 'user'
-                  ? 'bg-[#2e4e84]/10 text-white border border-[#2e4e84]/30 whitespace-pre-wrap'
-                  : 'bg-white text-[#4a5260] border border-[#D7D7D7] prose prose-invert prose-sm max-w-none prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-headings:my-3 prose-pre:bg-[#F4F4F4] prose-pre:border prose-pre:border-[#D7D7D7] prose-code:text-[#2e4e84] prose-strong:text-white prose-a:text-[#2e4e84] prose-table:border-collapse prose-th:border prose-th:border-[#D7D7D7] prose-th:bg-[#efefef] prose-th:px-3 prose-th:py-1.5 prose-td:border prose-td:border-[#D7D7D7] prose-td:px-3 prose-td:py-1.5'
+                  ? 'bg-[#2e4e84] text-white border border-[#2e4e84] whitespace-pre-wrap'
+                  : 'bg-white text-[#1f2330] border border-[#D7D7D7] prose prose-slate prose-sm max-w-none prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-headings:my-3 prose-pre:bg-[#F4F4F4] prose-pre:border prose-pre:border-[#D7D7D7] prose-code:text-[#2e4e84] prose-strong:text-[#022569] prose-a:text-[#2e4e84] prose-table:border-collapse prose-th:border prose-th:border-[#D7D7D7] prose-th:bg-[#efefef] prose-th:px-3 prose-th:py-1.5 prose-td:border prose-td:border-[#D7D7D7] prose-td:px-3 prose-td:py-1.5'
               }`}>
                 {m.role === 'assistant' && m.content
                   ? <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
@@ -143,7 +143,7 @@ export default function AIAssistant() {
               onChange={e => setInput(e.target.value)}
               disabled={streaming}
               placeholder="Ask about SNAP QC policy, error patterns, HR1 provisions, or case strategies..."
-              className="flex-1 bg-[#F4F4F4] border border-[#D7D7D7] rounded-xl px-4 py-3 text-sm text-white placeholder:text-[#6b7280] focus:outline-none focus:border-[#2e4e84] disabled:opacity-50"
+              className="flex-1 bg-[#F4F4F4] border border-[#D7D7D7] rounded-xl px-4 py-3 text-sm text-[#1f2330] placeholder:text-[#9ca3af] focus:outline-none focus:border-[#2e4e84] disabled:opacity-50"
             />
             <button
               type="submit"
