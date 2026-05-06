@@ -47,8 +47,8 @@ export default function Settings() {
             onClick={() => setTab(t)}
             className={`px-4 py-2 text-sm font-medium rounded-t transition-colors ${
               tab === t
-                ? 'bg-[#F4F4F4] text-white border-b-2 border-[#ef4444]'
-                : 'text-[#4a5260] hover:text-white'
+                ? 'bg-white text-[#022569] border-b-2 border-[#f1ad02]'
+                : 'text-[#4a5260] hover:text-[#022569]'
             }`}
           >
             {t === 'branding' ? 'Branding' : t === 'data_sources' ? 'Data Sources' : 'Use Cases'}
@@ -77,8 +77,8 @@ export default function Settings() {
           <Save className="w-4 h-4" />
           {saving ? 'Saving…' : 'Save Changes'}
         </button>
-        {saved && <span className="text-sm text-green-400">Saved!</span>}
-        {error && <span className="text-sm text-red-400">{error}</span>}
+        {saved && <span className="text-sm text-green-700">Saved!</span>}
+        {error && <span className="text-sm text-red-600">{error}</span>}
       </div>
     </div>
   );
@@ -106,7 +106,7 @@ function BrandingTab({ draft, setDraft }: { draft: AppConfig; setDraft: (d: AppC
               value={draft[key] as string}
               onChange={e => set(key, e.target.value)}
               placeholder={placeholder}
-              className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#2e4e84]"
+              className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded-lg px-3 py-2 text-sm text-[#1f2330] focus:outline-none focus:border-[#2e4e84]"
             />
           </div>
         ))}
@@ -123,7 +123,7 @@ function BrandingTab({ draft, setDraft }: { draft: AppConfig; setDraft: (d: AppC
               type="text"
               value={draft.accent_color}
               onChange={e => set('accent_color', e.target.value)}
-              className="flex-1 bg-[#F4F4F4] border border-[#D7D7D7] rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-[#2e4e84]"
+              className="flex-1 bg-[#F4F4F4] border border-[#D7D7D7] rounded-lg px-3 py-2 text-sm text-[#1f2330] font-mono focus:outline-none focus:border-[#2e4e84]"
             />
           </div>
         </div>
@@ -133,7 +133,7 @@ function BrandingTab({ draft, setDraft }: { draft: AppConfig; setDraft: (d: AppC
             value={draft.footer_alert}
             onChange={e => set('footer_alert', e.target.value)}
             rows={3}
-            className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#2e4e84] resize-none"
+            className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded-lg px-3 py-2 text-sm text-[#1f2330] focus:outline-none focus:border-[#2e4e84] resize-none"
           />
         </div>
       </div>
@@ -184,7 +184,7 @@ function DataSourcesTab({ draft, setDraft }: { draft: AppConfig; setDraft: (d: A
         <p className="text-sm text-[#4a5260]">Configure the data intake feeds for this deployment.</p>
         <button
           onClick={() => { setEditing({ ...EMPTY_DS }); setIsNew(true); }}
-          className="px-3 py-1.5 bg-[#F4F4F4] border border-[#D7D7D7] rounded-lg text-xs text-white hover:bg-[#eaf0f9] transition-colors flex items-center gap-1"
+          className="px-3 py-1.5 bg-[#F4F4F4] border border-[#D7D7D7] rounded-lg text-xs text-[#4a5260] hover:bg-[#eaf0f9] hover:text-[#022569] transition-colors flex items-center gap-1"
         >
           <Database className="w-3 h-3" /> Add Source
         </button>
@@ -212,7 +212,7 @@ function DataSourcesTab({ draft, setDraft }: { draft: AppConfig; setDraft: (d: A
         <tbody>
           {draft.data_sources.map(ds => (
             <tr key={ds.id} className="border-b border-[#1a1a22]">
-              <td className="py-2 pr-4 text-white">{ds.name}</td>
+              <td className="py-2 pr-4 text-[#1f2330]">{ds.name}</td>
               <td className="py-2 pr-4 text-[#4a5260]">{ds.domain}</td>
               <td className="py-2 pr-4 text-[#4a5260] text-xs">{ds.system}</td>
               <td className="py-2 pr-4 text-[#4a5260] text-xs">{ds.cadence}</td>
@@ -250,7 +250,7 @@ function DataSourceForm({ ds, onChange, onSave, onCancel }: {
           <input
             value={ds[key]}
             onChange={e => set(key, e.target.value)}
-            className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded px-2 py-1.5 text-sm text-white focus:outline-none"
+            className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded px-2 py-1.5 text-sm text-[#1f2330] focus:outline-none"
           />
         </div>
       ))}
@@ -260,15 +260,15 @@ function DataSourceForm({ ds, onChange, onSave, onCancel }: {
           value={ds.description}
           onChange={e => set('description', e.target.value)}
           rows={2}
-          className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded px-2 py-1.5 text-sm text-white focus:outline-none resize-none"
+          className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded px-2 py-1.5 text-sm text-[#1f2330] focus:outline-none resize-none"
         />
       </div>
       <div className="col-span-2 flex gap-2 justify-end">
-        <button onClick={onCancel} className="px-3 py-1 text-xs text-[#4a5260] hover:text-white">Cancel</button>
+        <button onClick={onCancel} className="px-3 py-1 text-xs text-[#4a5260] hover:text-[#022569]">Cancel</button>
         <button
           onClick={() => onSave(ds)}
           disabled={!ds.id || !ds.name || !ds.domain}
-          className="px-3 py-1 text-xs bg-[#D7D7D7] text-white rounded hover:bg-[#9ca3af] disabled:opacity-40"
+          className="px-3 py-1 text-xs bg-[#D7D7D7] text-[#1f2330] rounded hover:bg-[#bcc9d7] disabled:opacity-40"
         >
           Save
         </button>
@@ -305,7 +305,7 @@ function UseCasesTab({ draft, setDraft }: { draft: AppConfig; setDraft: (d: AppC
         <p className="text-sm text-[#4a5260]">Configure the analytical questions this deployment surfaces.</p>
         <button
           onClick={() => { setEditing({ ...EMPTY_UC }); setIsNew(true); }}
-          className="px-3 py-1.5 bg-[#F4F4F4] border border-[#D7D7D7] rounded-lg text-xs text-white hover:bg-[#eaf0f9] transition-colors flex items-center gap-1"
+          className="px-3 py-1.5 bg-[#F4F4F4] border border-[#D7D7D7] rounded-lg text-xs text-[#4a5260] hover:bg-[#eaf0f9] hover:text-[#022569] transition-colors flex items-center gap-1"
         >
           <Target className="w-3 h-3" /> Add Use Case
         </button>
@@ -324,7 +324,7 @@ function UseCasesTab({ draft, setDraft }: { draft: AppConfig; setDraft: (d: AppC
         {draft.use_cases.map(uc => (
           <div key={uc.id} className="bg-[#12121a] border border-[#D7D7D7] rounded-lg p-4">
             <div className="flex justify-between items-start mb-1">
-              <p className="text-sm font-medium text-white">{uc.title}</p>
+              <p className="text-sm font-medium text-[#022569]">{uc.title}</p>
               <div className="flex gap-2 ml-4 shrink-0">
                 <button onClick={() => { setEditing({ ...uc }); setIsNew(false); }} className="text-xs text-[#2e4e84] hover:underline">Edit</button>
                 <button onClick={() => remove(uc.id)} className="text-xs text-red-500 hover:underline">Delete</button>
@@ -358,7 +358,7 @@ function UseCaseForm({ uc, onChange, onSave, onCancel }: {
           <input
             value={uc[key]}
             onChange={e => set(key, e.target.value)}
-            className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded px-2 py-1.5 text-sm text-white focus:outline-none"
+            className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded px-2 py-1.5 text-sm text-[#1f2330] focus:outline-none"
           />
         </div>
       ))}
@@ -368,7 +368,7 @@ function UseCaseForm({ uc, onChange, onSave, onCancel }: {
           value={uc.description}
           onChange={e => set('description', e.target.value)}
           rows={2}
-          className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded px-2 py-1.5 text-sm text-white focus:outline-none resize-none"
+          className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded px-2 py-1.5 text-sm text-[#1f2330] focus:outline-none resize-none"
         />
       </div>
       <div>
@@ -377,15 +377,15 @@ function UseCaseForm({ uc, onChange, onSave, onCancel }: {
           value={uc.analytical_question}
           onChange={e => set('analytical_question', e.target.value)}
           rows={2}
-          className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded px-2 py-1.5 text-sm text-white focus:outline-none resize-none"
+          className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded px-2 py-1.5 text-sm text-[#1f2330] focus:outline-none resize-none"
         />
       </div>
       <div className="flex gap-2 justify-end">
-        <button onClick={onCancel} className="px-3 py-1 text-xs text-[#4a5260] hover:text-white">Cancel</button>
+        <button onClick={onCancel} className="px-3 py-1 text-xs text-[#4a5260] hover:text-[#022569]">Cancel</button>
         <button
           onClick={() => onSave(uc)}
           disabled={!uc.id || !uc.title || !uc.analytical_question}
-          className="px-3 py-1 text-xs bg-[#D7D7D7] text-white rounded hover:bg-[#9ca3af] disabled:opacity-40"
+          className="px-3 py-1 text-xs bg-[#D7D7D7] text-[#1f2330] rounded hover:bg-[#bcc9d7] disabled:opacity-40"
         >
           Save
         </button>
