@@ -8,6 +8,7 @@ import CaseDetail from './pages/CaseDetail';
 import AIAssistant from './pages/AIAssistant';
 import PipelineMonitor from './pages/PipelineMonitor';
 import Settings from './pages/Settings';
+import DataCatalog from './pages/DataCatalog';
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
               <Route path="/chat" element={<AIAssistant />} />
               <Route path="/pipeline" element={<PipelineMonitor />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/catalog" element={<DataCatalog />} />
             </Routes>
           </Layout>
         </RoleProvider>
