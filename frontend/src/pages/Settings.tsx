@@ -234,7 +234,7 @@ function DataSourceForm({ ds, onChange, onSave, onCancel }: {
   onSave: (d: DataSource) => void;
   onCancel: () => void;
 }) {
-  const set = (key: keyof DataSource, val: string) => onChange({ ...ds, [key]: val });
+  const set = (key: Exclude<keyof DataSource, 'schema' | 'sources'>, val: string) => onChange({ ...ds, [key]: val });
 
   return (
     <div className="bg-[#12121a] border border-[#D7D7D7] rounded-xl p-4 mb-4 grid grid-cols-2 gap-3">
@@ -244,7 +244,7 @@ function DataSourceForm({ ds, onChange, onSave, onCancel }: {
         ['domain', 'Domain'],
         ['system', 'System'],
         ['cadence', 'Cadence'],
-      ] as [keyof DataSource, string][]).map(([key, label]) => (
+      ] as [Exclude<keyof DataSource, 'schema' | 'sources'>, string][]).map(([key, label]) => (
         <div key={key}>
           <label className="block text-xs text-[#4a5260] mb-1">{label}</label>
           <input

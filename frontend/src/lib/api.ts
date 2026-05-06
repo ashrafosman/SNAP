@@ -110,6 +110,12 @@ export interface OverviewMetrics {
   penalty_additional_risk: number;
 }
 
+export interface SchemaColumn {
+  column: string;
+  type: 'STRING' | 'LONG' | 'INT' | 'DOUBLE' | 'DATE' | 'BOOLEAN' | 'TIMESTAMP' | 'ARRAY';
+  description: string;
+}
+
 export interface DataSource {
   id: string;
   name: string;
@@ -117,6 +123,9 @@ export interface DataSource {
   system: string;
   description: string;
   cadence: string;
+  layer?: 'bronze' | 'silver' | 'gold';
+  schema?: SchemaColumn[];
+  sources?: string[];   // for silver/gold: which bronze tables feed this
 }
 
 export interface UseCase {

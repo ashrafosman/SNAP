@@ -1,0 +1,327 @@
+{
+  "agency_name": "Michigan SNAP",
+  "program_name": "SNAP QC Guard",
+  "state": "Michigan",
+  "accent_color": "#ef4444",
+  "tagline": "Early Warning System",
+  "footer_alert": "Oct 2026: SNAP cost-share shifts to 25/75. 40K recipients at risk.",
+  "data_sources": [
+    {
+      "id": "snap_eligibility",
+      "name": "SNAP Eligibility",
+      "domain": "Public Benefits",
+      "system": "State SNAP system",
+      "description": "Monthly eligibility file — household composition, benefit amounts, case status.",
+      "cadence": "Monthly",
+      "layer": "bronze",
+      "schema": [
+        { "column": "case_id",              "type": "STRING",    "description": "Unique SNAP case identifier" },
+        { "column": "household_id",         "type": "STRING",    "description": "Household group identifier" },
+        { "column": "ssn_hash",             "type": "STRING",    "description": "SHA-256 hash of head-of-household SSN" },
+        { "column": "county_fips",          "type": "STRING",    "description": "5-digit county FIPS code" },
+        { "column": "household_size",       "type": "INT",       "description": "Number of persons in household" },
+        { "column": "gross_income",         "type": "DOUBLE",    "description": "Monthly gross household income ($)" },
+        { "column": "net_income",           "type": "DOUBLE",    "description": "Monthly net income after deductions ($)" },
+        { "column": "benefit_amount",       "type": "DOUBLE",    "description": "Monthly SNAP benefit allotment ($)" },
+        { "column": "case_status",          "type": "STRING",    "description": "active | inactive | pending | suspended" },
+        { "column": "program_type",         "type": "STRING",    "description": "SNAP | SNAP-E | SNAP-D" },
+        { "column": "snap_start_date",      "type": "DATE",      "description": "Date case opened" },
+        { "column": "redetermination_date", "type": "DATE",      "description": "Next scheduled redetermination date" },
+        { "column": "last_updated",         "type": "TIMESTAMP", "description": "Record last modified timestamp" }
+      ]
+    },
+    {
+      "id": "adt_encounters",
+      "name": "ADT Encounters",
+      "domain": "Healthcare",
+      "system": "Hospital ADT feed",
+      "description": "Admission/Discharge/Transfer events for linked SNAP recipients.",
+      "cadence": "Daily",
+      "layer": "bronze",
+      "schema": [
+        { "column": "encounter_id",           "type": "STRING",    "description": "Unique encounter identifier" },
+        { "column": "patient_id",             "type": "STRING",    "description": "Internal patient identifier" },
+        { "column": "ssn_hash",               "type": "STRING",    "description": "SHA-256 hash of patient SSN for linkage" },
+        { "column": "admit_date",             "type": "DATE",      "description": "Admission date" },
+        { "column": "discharge_date",         "type": "DATE",      "description": "Discharge date (null if still admitted)" },
+        { "column": "admit_type",             "type": "STRING",    "description": "emergency | inpatient | outpatient | observation" },
+        { "column": "discharge_disposition",  "type": "STRING",    "description": "home | skilled_nursing | expired | transferred" },
+        { "column": "length_of_stay_days",    "type": "INT",       "description": "Days from admit to discharge" },
+        { "column": "facility_id",            "type": "STRING",    "description": "Hospital/facility identifier" },
+        { "column": "facility_name",          "type": "STRING",    "description": "Facility display name" },
+        { "column": "county_fips",            "type": "STRING",    "description": "County FIPS where facility is located" },
+        { "column": "primary_dx_code",        "type": "STRING",    "description": "Primary ICD-10 diagnosis at discharge" }
+      ]
+    },
+    {
+      "id": "ehr_diagnoses",
+      "name": "EHR Clinical Diagnoses",
+      "domain": "Healthcare",
+      "system": "EHR system",
+      "description": "ICD-10 diagnosis codes for chronic and acute conditions.",
+      "cadence": "Weekly",
+      "layer": "bronze",
+      "schema": [
+        { "column": "diagnosis_id",      "type": "STRING",    "description": "Unique diagnosis record ID" },
+        { "column": "patient_id",        "type": "STRING",    "description": "Internal patient identifier" },
+        { "column": "ssn_hash",          "type": "STRING",    "description": "SHA-256 hash of patient SSN" },
+        { "column": "encounter_id",      "type": "STRING",    "description": "Associated encounter (FK to ADT)" },
+        { "column": "icd10_code",        "type": "STRING",    "description": "ICD-10-CM diagnosis code" },
+        { "column": "icd10_description", "type": "STRING",    "description": "Human-readable diagnosis description" },
+        { "column": "condition_type",    "type": "STRING",    "description": "chronic | acute | preventive" },
+        { "column": "disability_flag",   "type": "BOOLEAN",   "description": "True if code qualifies for disability designation" },
+        { "column": "diagnosis_date",    "type": "DATE",      "description": "Date diagnosis was recorded" },
+        { "column": "provider_id",       "type": "STRING",    "description": "Rendering provider NPI" },
+        { "column": "facility_id",       "type": "STRING",    "description": "Facility where diagnosis was made" }
+      ]
+    },
+    {
+      "id": "medicaid",
+      "name": "Medicaid Enrollment",
+      "domain": "Public Benefits",
+      "system": "State Medicaid",
+      "description": "Current Medicaid enrollment linked to SNAP households.",
+      "cadence": "Monthly",
+      "layer": "bronze",
+      "schema": [
+        { "column": "medicaid_id",          "type": "STRING",    "description": "Unique Medicaid beneficiary ID" },
+        { "column": "ssn_hash",             "type": "STRING",    "description": "SHA-256 hash of beneficiary SSN" },
+        { "column": "household_id",         "type": "STRING",    "description": "Linked SNAP household ID (if matched)" },
+        { "column": "enrollment_status",    "type": "STRING",    "description": "active | inactive | pending | terminated" },
+        { "column": "enrollment_start_date","type": "DATE",      "description": "Coverage start date" },
+        { "column": "enrollment_end_date",  "type": "DATE",      "description": "Coverage end date (null if currently active)" },
+        { "column": "plan_type",            "type": "STRING",    "description": "managed_care | fee_for_service | waiver" },
+        { "column": "coverage_category",    "type": "STRING",    "description": "adult | child | pregnant | disabled | aged" },
+        { "column": "county_fips",          "type": "STRING",    "description": "County of residence FIPS code" },
+        { "column": "last_updated",         "type": "TIMESTAMP", "description": "Record last modified timestamp" }
+      ]
+    },
+    {
+      "id": "prapare",
+      "name": "PRAPARE SDOH Assessments",
+      "domain": "SDOH",
+      "system": "Care coordination platform",
+      "description": "Social determinants screenings completed at health visits.",
+      "cadence": "Ongoing",
+      "layer": "bronze",
+      "schema": [
+        { "column": "assessment_id",          "type": "STRING",  "description": "Unique assessment record ID" },
+        { "column": "patient_id",             "type": "STRING",  "description": "Internal patient identifier" },
+        { "column": "ssn_hash",               "type": "STRING",  "description": "SHA-256 hash of patient SSN" },
+        { "column": "assessment_date",        "type": "DATE",    "description": "Date assessment was completed" },
+        { "column": "housing_stability_score","type": "INT",     "description": "0–4 housing stability score (4 = stable)" },
+        { "column": "employment_status",      "type": "STRING",  "description": "full_time | part_time | unemployed | unable_to_work" },
+        { "column": "food_insecurity_flag",   "type": "BOOLEAN", "description": "True if patient screened positive for food insecurity" },
+        { "column": "transportation_barrier", "type": "BOOLEAN", "description": "True if transportation is a barrier to care" },
+        { "column": "financial_strain_flag",  "type": "BOOLEAN", "description": "True if patient reports financial strain" },
+        { "column": "social_isolation_score", "type": "INT",     "description": "0–2 social isolation score (2 = isolated)" },
+        { "column": "education_level",        "type": "STRING",  "description": "less_than_hs | hs_diploma | some_college | college_plus" },
+        { "column": "sdoh_risk_score",        "type": "INT",     "description": "Composite SDOH risk 0–10 (10 = highest need)" }
+      ]
+    },
+    {
+      "id": "vital_records",
+      "name": "Vital Records",
+      "domain": "Vital Records",
+      "system": "State vital records",
+      "description": "Birth and death records linked to SNAP households.",
+      "cadence": "Monthly",
+      "layer": "bronze",
+      "schema": [
+        { "column": "record_id",          "type": "STRING",  "description": "Unique vital record ID" },
+        { "column": "record_type",        "type": "STRING",  "description": "birth | death" },
+        { "column": "ssn_hash",           "type": "STRING",  "description": "SHA-256 hash of individual SSN" },
+        { "column": "event_date",         "type": "DATE",    "description": "Date of birth or death" },
+        { "column": "county_fips",        "type": "STRING",  "description": "County where event occurred" },
+        { "column": "household_id",       "type": "STRING",  "description": "Linked SNAP household ID (if matched)" },
+        { "column": "age_at_death",       "type": "INT",     "description": "Age in years at time of death (death records only)" },
+        { "column": "cause_of_death_code","type": "STRING",  "description": "ICD-10 underlying cause of death (death records only)" },
+        { "column": "mother_ssn_hash",    "type": "STRING",  "description": "SHA-256 hash of mother SSN (birth records only)" },
+        { "column": "birth_weight_grams", "type": "INT",     "description": "Birth weight in grams (birth records only)" }
+      ]
+    },
+    {
+      "id": "silver_snap_linked_persons",
+      "name": "silver_snap_linked_persons",
+      "domain": "Public Benefits",
+      "system": "Databricks Unity Catalog",
+      "description": "Entity-resolved person-level view joining SNAP, Medicaid, Vital Records, ADT, and SDOH. One row per person.",
+      "cadence": "Daily",
+      "layer": "silver",
+      "sources": ["snap_eligibility", "medicaid", "vital_records", "adt_encounters", "prapare"],
+      "schema": [
+        { "column": "person_id",            "type": "STRING",    "description": "Unified person identifier (deterministic from ssn_hash)" },
+        { "column": "household_id",         "type": "STRING",    "description": "SNAP household ID" },
+        { "column": "snap_case_id",         "type": "STRING",    "description": "SNAP case ID" },
+        { "column": "medicaid_id",          "type": "STRING",    "description": "Linked Medicaid beneficiary ID (null if unmatched)" },
+        { "column": "county_fips",          "type": "STRING",    "description": "County of residence" },
+        { "column": "is_deceased",          "type": "BOOLEAN",   "description": "True if matched to a death record" },
+        { "column": "death_date",           "type": "DATE",      "description": "Date of death (null if alive)" },
+        { "column": "medicaid_active",      "type": "BOOLEAN",   "description": "True if Medicaid enrollment is currently active" },
+        { "column": "medicaid_gap_days",    "type": "INT",       "description": "Days since Medicaid status change without SNAP update" },
+        { "column": "last_adt_admit_date",  "type": "DATE",      "description": "Most recent hospital admission date" },
+        { "column": "adt_admits_90d",       "type": "INT",       "description": "Number of inpatient admissions in last 90 days" },
+        { "column": "disability_flag",      "type": "BOOLEAN",   "description": "True if any EHR diagnosis qualifies for disability" },
+        { "column": "sdoh_risk_score",      "type": "INT",       "description": "Most recent PRAPARE composite risk score (0–10)" },
+        { "column": "food_insecurity_flag", "type": "BOOLEAN",   "description": "Most recent PRAPARE food insecurity screen result" },
+        { "column": "updated_at",           "type": "TIMESTAMP", "description": "Row last refreshed" }
+      ]
+    },
+    {
+      "id": "silver_household_profile",
+      "name": "silver_household_profile",
+      "domain": "Public Benefits",
+      "system": "Databricks Unity Catalog",
+      "description": "Household-level profile reconciling reported SNAP composition against Vital Records and Medicaid. Surfaces size mismatches and unreported events.",
+      "cadence": "Daily",
+      "layer": "silver",
+      "sources": ["snap_eligibility", "vital_records", "medicaid"],
+      "schema": [
+        { "column": "household_id",               "type": "STRING",  "description": "SNAP household identifier" },
+        { "column": "snap_case_id",               "type": "STRING",  "description": "Primary SNAP case ID for household" },
+        { "column": "county_fips",                "type": "STRING",  "description": "County of residence" },
+        { "column": "household_size_reported",    "type": "INT",     "description": "Household size as reported on SNAP case" },
+        { "column": "household_size_actual",      "type": "INT",     "description": "Household size derived from Vital Records (living members)" },
+        { "column": "size_discrepancy",           "type": "INT",     "description": "household_size_actual minus household_size_reported" },
+        { "column": "unreported_births_count",    "type": "INT",     "description": "Births in Vital Records not reflected in SNAP household size" },
+        { "column": "deceased_members_count",     "type": "INT",     "description": "Members matched to death records still on SNAP case" },
+        { "column": "benefit_amount",             "type": "DOUBLE",  "description": "Current monthly SNAP allotment ($)" },
+        { "column": "active_medicaid_members",    "type": "INT",     "description": "Count of household members with active Medicaid" },
+        { "column": "redetermination_date",       "type": "DATE",    "description": "Next SNAP redetermination date" },
+        { "column": "days_to_redetermination",    "type": "INT",     "description": "Days until next redetermination (may be negative if overdue)" },
+        { "column": "updated_at",                 "type": "TIMESTAMP","description": "Row last refreshed" }
+      ]
+    },
+    {
+      "id": "silver_clinical_risk",
+      "name": "silver_clinical_risk",
+      "domain": "Healthcare",
+      "system": "Databricks Unity Catalog",
+      "description": "Per-person clinical risk profile joining EHR diagnoses and ADT events. Identifies disability qualifications and medical expense deduction eligibility.",
+      "cadence": "Weekly",
+      "layer": "silver",
+      "sources": ["ehr_diagnoses", "adt_encounters"],
+      "schema": [
+        { "column": "person_id",                  "type": "STRING",  "description": "Unified person identifier" },
+        { "column": "snap_case_id",               "type": "STRING",  "description": "Linked SNAP case ID" },
+        { "column": "chronic_condition_codes",    "type": "ARRAY",   "description": "Array of ICD-10 codes for active chronic conditions" },
+        { "column": "disability_qualified",       "type": "BOOLEAN", "description": "True if any diagnosis meets SNAP disability criteria" },
+        { "column": "medical_expense_eligible",   "type": "BOOLEAN", "description": "True if person qualifies for medical expense deduction" },
+        { "column": "estimated_monthly_expenses", "type": "DOUBLE",  "description": "Estimated monthly out-of-pocket medical expenses ($)" },
+        { "column": "high_utilizer_flag",         "type": "BOOLEAN", "description": "True if 3+ ED visits or 2+ inpatient admits in 90 days" },
+        { "column": "adt_events_90d",             "type": "INT",     "description": "Total ADT events in last 90 days" },
+        { "column": "last_discharge_date",        "type": "DATE",    "description": "Most recent hospital discharge date" },
+        { "column": "last_discharge_disposition", "type": "STRING",  "description": "Disposition at most recent discharge" },
+        { "column": "updated_at",                 "type": "TIMESTAMP","description": "Row last refreshed" }
+      ]
+    },
+    {
+      "id": "gold_qc_case_scores",
+      "name": "gold_qc_case_scores",
+      "domain": "Public Benefits",
+      "system": "Databricks Unity Catalog",
+      "description": "QC-ready case-level scoring table. One row per SNAP case. Powers the Case Queue, Dashboard risk metrics, and penalty exposure calculations.",
+      "cadence": "Daily",
+      "layer": "gold",
+      "sources": ["silver_snap_linked_persons", "silver_household_profile", "silver_clinical_risk"],
+      "schema": [
+        { "column": "case_id",               "type": "STRING",  "description": "SNAP case identifier" },
+        { "column": "household_id",          "type": "STRING",  "description": "Household identifier" },
+        { "column": "county_fips",           "type": "STRING",  "description": "County FIPS code" },
+        { "column": "qc_score",              "type": "INT",     "description": "Composite QC risk score 0–100 (100 = highest risk)" },
+        { "column": "priority",              "type": "STRING",  "description": "HIGH | MEDIUM | LOW based on qc_score thresholds" },
+        { "column": "error_type",            "type": "STRING",  "description": "Primary error type driving the score" },
+        { "column": "estimated_error_amount","type": "DOUBLE",  "description": "Estimated dollar value of the error ($)" },
+        { "column": "flags",                 "type": "ARRAY",   "description": "Array of signal codes that contributed to the score" },
+        { "column": "benefit_amount",        "type": "DOUBLE",  "description": "Current monthly benefit allotment ($)" },
+        { "column": "redetermination_date",  "type": "DATE",    "description": "Next redetermination date" },
+        { "column": "case_status",           "type": "STRING",  "description": "active | under_review | resolved" },
+        { "column": "scored_at",             "type": "TIMESTAMP","description": "Timestamp when score was last computed" }
+      ]
+    },
+    {
+      "id": "gold_cross_dataset_signals",
+      "name": "gold_cross_dataset_signals",
+      "domain": "Public Benefits",
+      "system": "Databricks Unity Catalog",
+      "description": "Cross-dataset anomaly feed. Each row is a detected signal linking a SNAP case to an event in another dataset that indicates a likely error or eligibility change.",
+      "cadence": "Daily",
+      "layer": "gold",
+      "sources": ["silver_snap_linked_persons", "silver_household_profile"],
+      "schema": [
+        { "column": "signal_id",          "type": "STRING",    "description": "Unique signal identifier" },
+        { "column": "case_id",            "type": "STRING",    "description": "Affected SNAP case ID" },
+        { "column": "household_id",       "type": "STRING",    "description": "Affected household ID" },
+        { "column": "signal_type",        "type": "STRING",    "description": "death_match | medicaid_gap | unreported_birth | missed_deduction | adt_trigger | sdoh_change" },
+        { "column": "severity",           "type": "STRING",    "description": "HIGH | MEDIUM | LOW" },
+        { "column": "description",        "type": "STRING",    "description": "Human-readable description of the anomaly" },
+        { "column": "datasets_involved",  "type": "ARRAY",     "description": "Source dataset IDs that produced this signal" },
+        { "column": "estimated_impact",   "type": "DOUBLE",    "description": "Estimated dollar impact if signal is a true error ($)" },
+        { "column": "status",             "type": "STRING",    "description": "open | under_review | resolved | dismissed" },
+        { "column": "detected_at",        "type": "TIMESTAMP", "description": "When this signal was first detected" },
+        { "column": "resolved_at",        "type": "TIMESTAMP", "description": "When this signal was resolved (null if open)" }
+      ]
+    },
+    {
+      "id": "gold_deduction_audit",
+      "name": "gold_deduction_audit",
+      "domain": "Public Benefits",
+      "system": "Databricks Unity Catalog",
+      "description": "Missed medical expense deduction audit. Identifies SNAP cases where EHR/ADT data indicates a person qualifies for a deduction that is not being applied — systematic underpayments.",
+      "cadence": "Weekly",
+      "layer": "gold",
+      "sources": ["silver_clinical_risk", "gold_qc_case_scores"],
+      "schema": [
+        { "column": "audit_id",                  "type": "STRING",  "description": "Unique audit record ID" },
+        { "column": "case_id",                   "type": "STRING",  "description": "SNAP case ID" },
+        { "column": "person_id",                 "type": "STRING",  "description": "Affected person within the household" },
+        { "column": "qualifying_icd10_codes",    "type": "ARRAY",   "description": "ICD-10 codes that qualify for medical expense deduction" },
+        { "column": "disability_qualified",      "type": "BOOLEAN", "description": "True if person meets SNAP disability definition" },
+        { "column": "current_deduction_amount",  "type": "DOUBLE",  "description": "Medical deduction currently applied on SNAP case ($)" },
+        { "column": "estimated_eligible_amount", "type": "DOUBLE",  "description": "Estimated deduction person is eligible for ($)" },
+        { "column": "gap_amount",                "type": "DOUBLE",  "description": "estimated_eligible_amount minus current_deduction_amount ($)" },
+        { "column": "benefit_impact",            "type": "DOUBLE",  "description": "Estimated monthly benefit increase if gap corrected ($)" },
+        { "column": "priority",                  "type": "STRING",  "description": "HIGH | MEDIUM | LOW based on gap_amount" },
+        { "column": "computed_at",               "type": "TIMESTAMP","description": "When this audit record was last computed" }
+      ]
+    }
+  ],
+  "use_cases": [
+    {
+      "id": "hospitalization_risk",
+      "title": "SNAP & Hospitalization Risk",
+      "description": "Identify SNAP recipients with recent ED visits or hospitalizations who may be at risk of benefit disruption.",
+      "analytical_question": "Which active SNAP cases have 2+ inpatient admissions in the past 90 days?"
+    },
+    {
+      "id": "maternal_outcomes",
+      "title": "SNAP Coverage and Maternal Outcomes",
+      "description": "Correlate prenatal SNAP enrollment with birth outcomes for program impact measurement.",
+      "analytical_question": "What share of births with adverse outcomes had a gap in SNAP coverage during pregnancy?"
+    },
+    {
+      "id": "chronic_disease",
+      "title": "SNAP and Chronic Disease",
+      "description": "Surface SNAP recipients with chronic disease diagnoses to target nutrition outreach.",
+      "analytical_question": "Which SNAP households include a member with diabetes or hypertension and no recent preventive care?"
+    },
+    {
+      "id": "death_match_audit",
+      "title": "Death Record Cross-Match",
+      "description": "Identify SNAP cases where a household member has a matching death record but benefits continue.",
+      "analytical_question": "Which active SNAP cases have a member matched to a death record in the past 12 months?"
+    },
+    {
+      "id": "medicaid_gap_detection",
+      "title": "Medicaid–SNAP Gap Detection",
+      "description": "Surface cases where Medicaid status changed but the SNAP record was not updated within 30 days.",
+      "analytical_question": "Which SNAP cases have a Medicaid status change in the last 30 days with no corresponding SNAP update?"
+    },
+    {
+      "id": "missed_deduction_audit",
+      "title": "Missed Medical Expense Deductions",
+      "description": "Find SNAP cases where EHR diagnoses indicate a qualifying condition but no medical expense deduction is applied.",
+      "analytical_question": "Which SNAP cases have a household member with a disability-qualifying ICD-10 code and zero medical deduction on file?"
+    }
+  ]
+}
