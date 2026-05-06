@@ -1,9 +1,9 @@
 interface Props { severity: 'HIGH' | 'MEDIUM' | 'LOW'; }
 
 const styles: Record<string, string> = {
-  HIGH: 'bg-red-500/15 text-red-400 border-red-500/30',
-  MEDIUM: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-  LOW: 'bg-zinc-700/40 text-zinc-400 border-zinc-600/40',
+  HIGH:   'bg-red-50 text-red-700 border-red-200',
+  MEDIUM: 'bg-amber-50 text-amber-700 border-amber-200',
+  LOW:    'bg-slate-100 text-slate-600 border-slate-200',
 };
 
 export default function SeverityBadge({ severity }: Props) {

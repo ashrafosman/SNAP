@@ -9,16 +9,16 @@ interface Props {
   trend?: string;
 }
 
-export default function KPICard({ title, value, subtitle, icon: Icon, color = 'text-[#6366f1]', trend }: Props) {
+export default function KPICard({ title, value, subtitle, icon: Icon, color = 'text-[#2e4e84]', trend }: Props) {
   return (
-    <div className="bg-[#16161e] border border-[#27272a] rounded-xl p-5">
+    <div className="bg-white border border-[#D7D7D7] rounded-xl p-5" style={{ borderLeft: '4px solid #f1ad02' }}>
       <div className="flex items-start justify-between mb-3">
-        <p className="text-xs text-[#71717a] font-medium uppercase tracking-wider">{title}</p>
+        <p className="text-xs text-[#4a5260] font-semibold uppercase tracking-wider">{title}</p>
         <Icon className={`w-4 h-4 ${color}`} />
       </div>
       <p className={`text-2xl font-bold ${color}`}>{value}</p>
-      {subtitle && <p className="text-xs text-[#71717a] mt-1">{subtitle}</p>}
-      {trend && <p className="text-xs text-[#71717a] mt-1">{trend}</p>}
+      {subtitle && <p className="text-xs text-[#4a5260] mt-1">{subtitle}</p>}
+      {trend && <p className="text-xs text-[#4a5260] mt-1">{trend}</p>}
     </div>
   );
 }
