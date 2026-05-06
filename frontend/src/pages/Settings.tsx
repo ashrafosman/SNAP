@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ShieldAlert, Save, Database, Target } from 'lucide-react';
 import { useAppConfig } from '../context/AppConfigContext';
 import { api, type AppConfig, type DataSource, type UseCase } from '../lib/api';
@@ -6,12 +6,16 @@ import { api, type AppConfig, type DataSource, type UseCase } from '../lib/api';
 type Tab = 'branding' | 'data_sources' | 'use_cases';
 
 export default function Settings() {
-  const { config, setConfig } = useAppConfig();
+  const { config, setConfig, loading } = useAppConfig();
   const [tab, setTab] = useState<Tab>('branding');
   const [draft, setDraft] = useState<AppConfig>(() => ({ ...config }));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (!loading) setDraft({ ...config });
+  }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const save = async () => {
     setSaving(true);
@@ -162,6 +166,7 @@ function DataSourcesTab({ draft, setDraft }: { draft: AppConfig; setDraft: (d: A
 
   const save = (ds: DataSource) => {
     if (isNew) {
+      if (draft.data_sources.some(s => s.id === ds.id)) return;
       setDraft({ ...draft, data_sources: [...draft.data_sources, ds] });
     } else {
       setDraft({ ...draft, data_sources: draft.data_sources.map(s => s.id === ds.id ? ds : s) });
@@ -282,6 +287,7 @@ function UseCasesTab({ draft, setDraft }: { draft: AppConfig; setDraft: (d: AppC
 
   const save = (uc: UseCase) => {
     if (isNew) {
+      if (draft.use_cases.some(u => u.id === uc.id)) return;
       setDraft({ ...draft, use_cases: [...draft.use_cases, uc] });
     } else {
       setDraft({ ...draft, use_cases: draft.use_cases.map(u => u.id === uc.id ? uc : u) });
