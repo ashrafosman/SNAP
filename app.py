@@ -10,11 +10,20 @@ logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(title="SNAP QC Early Warning System")
 
+_raw_origins = os.environ.get(
+    "ALLOWED_ORIGINS",
+    "https://snap-qc-3438839487639471.11.azure.databricksapps.com,"
+    "http://localhost:5173,"
+    "http://localhost:5174",
+)
+_allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=_allowed_origins,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+    allow_credentials=True,
 )
 
 import server.hr1_store  # noqa: F401 — eagerly load HR1 chunks at startup

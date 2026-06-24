@@ -1,8 +1,23 @@
 """Branding profiles CRUD — backed by Lakebase (Postgres)."""
-from fastapi import APIRouter, HTTPException
+import os
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from typing import Optional
 from server.lakebase import get_connection
+
+# Emails allowed to mutate profiles. Falls back to open when not set (local dev).
+_ADMIN_EMAILS_RAW = os.environ.get("PROFILE_ADMIN_EMAILS", "")
+_ADMIN_EMAILS = {e.strip().lower() for e in _ADMIN_EMAILS_RAW.split(",") if e.strip()}
+
+
+def _require_admin(request: Request):
+    """Raise 403 unless the caller is an allowed admin (or no list is configured)."""
+    if not _ADMIN_EMAILS:
+        return  # not configured — allow all (local dev)
+    # Databricks Apps injects the authenticated user's email in this header
+    caller = (request.headers.get("X-Forwarded-Email") or "").lower()
+    if caller not in _ADMIN_EMAILS:
+        raise HTTPException(status_code=403, detail="Admin access required to modify profiles")
 
 router = APIRouter(prefix="/profiles")
 
@@ -49,7 +64,8 @@ def list_profiles():
 
 
 @router.post("")
-def create_profile(p: ProfileIn):
+def create_profile(p: ProfileIn, request: Request):
+    _require_admin(request)
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -76,7 +92,8 @@ def create_profile(p: ProfileIn):
 
 
 @router.put("/{profile_id}/activate")
-def activate_profile(profile_id: str):
+def activate_profile(profile_id: str, request: Request):
+    _require_admin(request)
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("UPDATE branding_profiles SET is_active = false")
@@ -92,7 +109,8 @@ def activate_profile(profile_id: str):
 
 
 @router.delete("/{profile_id}")
-def delete_profile(profile_id: str):
+def delete_profile(profile_id: str, request: Request):
+    _require_admin(request)
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("DELETE FROM branding_profiles WHERE id = %s", (profile_id,))
