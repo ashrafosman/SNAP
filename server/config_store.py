@@ -97,12 +97,13 @@ def write_config(data: dict) -> dict:
     payload = json.dumps(data, indent=2).encode()
     if IS_DATABRICKS_APP:
         volume_path = os.environ.get("APP_CONFIG_VOLUME", "")
-        if not volume_path:
-            raise RuntimeError("APP_CONFIG_VOLUME env var is not set")
-        client = get_workspace_client()
-        client.files.upload(volume_path, io.BytesIO(payload), overwrite=True)
-    else:
-        os.makedirs(os.path.dirname(os.path.abspath(_local_path)), exist_ok=True)
-        with open(_local_path, "wb") as f:
-            f.write(payload)
+        if volume_path:
+            client = get_workspace_client()
+            client.files.upload(volume_path, io.BytesIO(payload), overwrite=True)
+            return data
+        # No volume configured — fall back to local file (best-effort on Databricks)
+        logging.warning("APP_CONFIG_VOLUME not set; writing config to local file (may not persist across restarts)")
+    os.makedirs(os.path.dirname(os.path.abspath(_local_path)), exist_ok=True)
+    with open(_local_path, "wb") as f:
+        f.write(payload)
     return data

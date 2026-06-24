@@ -6,7 +6,7 @@ export interface RoleDef {
   label: string;
   tagline: string;
   defaultPath: string;
-  nav: Array<'/' | '/queue' | '/catalog' | '/chat' | '/pipeline' | '/settings'>;
+  nav: Array<'/' | '/queue' | '/signals' | '/catalog' | '/chat' | '/pipeline' | '/settings' | '/reports' | '/map'>;
   accent: string;
 }
 
@@ -22,14 +22,14 @@ export const ROLES: Record<Role, RoleDef> = {
     label: 'Supervisor',
     tagline: 'Team oversight & QC management',
     defaultPath: '/',
-    nav: ['/', '/queue', '/catalog', '/chat', '/pipeline'],
+    nav: ['/', '/queue', '/signals', '/catalog', '/chat', '/pipeline', '/reports', '/map'],
     accent: 'text-amber-400',
   },
   executive: {
     label: 'Executive',
     tagline: 'Strategic overview & policy',
     defaultPath: '/',
-    nav: ['/', '/chat'],
+    nav: ['/', '/reports', '/chat', '/map'],
     accent: 'text-green-400',
   },
   data_engineer: {

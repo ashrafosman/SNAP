@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, Filter, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Search, Filter, ChevronLeft, ChevronRight, AlertTriangle, X, MapPin } from 'lucide-react';
 import SeverityBadge from '../components/SeverityBadge';
 import { api, type Case, type CaseListResponse } from '../lib/api';
 
@@ -12,6 +12,7 @@ const STATUS_STYLES: Record<string, string> = {
 
 export default function CaseQueue() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [data, setData] = useState<CaseListResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -19,12 +20,28 @@ export default function CaseQueue() {
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
 
+  // County filter from GeoMap navigation
+  const countyName = searchParams.get('county') ?? '';
+  const countyFilter = searchParams.getAll('cities');
+
+  const clearCountyFilter = () => {
+    setSearchParams({});
+    setPage(1);
+  };
+
   const load = useCallback(() => {
     setLoading(true);
-    api.cases.list({ search: search || undefined, severity: severity || undefined, status: status || undefined, page, page_size: 50 })
+    api.cases.list({
+      search: search || undefined,
+      severity: severity || undefined,
+      status: status || undefined,
+      cities: countyFilter.length > 0 ? countyFilter : undefined,
+      page,
+      page_size: 50,
+    })
       .then(setData)
       .finally(() => setLoading(false));
-  }, [search, severity, status, page]);
+  }, [search, severity, status, page, countyFilter.join(',')]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -36,6 +53,17 @@ export default function CaseQueue() {
         <h1 className="text-2xl font-bold">Case Review Queue</h1>
         <p className="text-sm text-[#4a5260] mt-1">Cases ranked by risk score — review HIGH and MEDIUM priority first</p>
       </div>
+
+      {countyName && (
+        <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-[#022569]/8 border border-[#022569]/20 rounded-xl w-fit">
+          <MapPin className="w-3.5 h-3.5 text-[#022569]" />
+          <span className="text-sm font-semibold text-[#022569]">Filtered: {countyName} County</span>
+          <span className="text-xs text-[#4a5260]">({countyFilter.join(', ')})</span>
+          <button onClick={clearCountyFilter} className="ml-1 text-[#4a5260] hover:text-[#022569]">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">

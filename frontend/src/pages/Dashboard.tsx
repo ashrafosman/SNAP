@@ -1,11 +1,13 @@
 import { useEffect, useState, useMemo } from 'react';
-import { AlertTriangle, DollarSign, CheckCircle2, TrendingUp, Activity, ShieldCheck, Calculator } from 'lucide-react';
+import { AlertTriangle, DollarSign, CheckCircle2, TrendingUp, Activity, ShieldCheck, Calculator, BookOpen, BarChart3 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   CartesianGrid, Legend, PieChart, Pie, Cell,
 } from 'recharts';
 import KPICard from '../components/KPICard';
 import { api, type OverviewMetrics } from '../lib/api';
+import StoryPresentation from './StoryPresentation';
+import { useBranding } from '../context/AppConfigContext';
 
 const PIE_COLORS = ['#ef4444', '#f59e0b', '#2e4e84', '#22c55e', '#8b5cf6', '#06b6d4'];
 
@@ -23,9 +25,9 @@ const ChartTip = ({ active, payload, label }: any) => {
   );
 };
 
-function ROICalculator({ metrics }: { metrics: OverviewMetrics }) {
-  const [targetRate, setTargetRate] = useState(9);
-  const currentRate = metrics.error_rate_pct;
+function ROICalculator({ metrics, profileRate }: { metrics: OverviewMetrics; profileRate?: number }) {
+  const currentRate = profileRate ?? metrics.error_rate_pct;
+  const [targetRate, setTargetRate] = useState(Math.max(1, Math.floor(currentRate) - 3));
 
   // Federal tolerance threshold — below this, NO penalties
   const TOLERANCE = 6;
@@ -217,6 +219,8 @@ function ROICalculator({ metrics }: { metrics: OverviewMetrics }) {
 }
 
 export default function Dashboard() {
+  const { state, error_rate_pct: profileRate } = useBranding();
+  const [view, setView] = useState<'story' | 'metrics'>('story');
   const [metrics, setMetrics] = useState<OverviewMetrics | null>(null);
   const [errorTypes, setErrorTypes] = useState<any[]>([]);
   const [trend, setTrend] = useState<any[]>([]);
@@ -238,11 +242,56 @@ export default function Dashboard() {
     });
   }, []);
 
+  // View toggle bar — always rendered
+  const ViewToggle = (
+    <div className="sticky top-0 z-30 bg-white border-b border-[#D7D7D7] px-6 py-2 flex items-center justify-between shadow-sm">
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-[#4a5260] font-medium">Home</span>
+      </div>
+      <div className="flex items-center gap-1 bg-[#F4F4F4] border border-[#D7D7D7] rounded-xl p-1">
+        <button
+          onClick={() => setView('story')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            view === 'story'
+              ? 'bg-[#022569] text-white shadow'
+              : 'text-[#4a5260] hover:text-[#022569]'
+          }`}
+        >
+          <BookOpen className="w-3.5 h-3.5" />
+          The Story
+        </button>
+        <button
+          onClick={() => setView('metrics')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            view === 'metrics'
+              ? 'bg-[#022569] text-white shadow'
+              : 'text-[#4a5260] hover:text-[#022569]'
+          }`}
+        >
+          <BarChart3 className="w-3.5 h-3.5" />
+          Live QC Data
+        </button>
+      </div>
+    </div>
+  );
+
+  if (view === 'story') {
+    return (
+      <div>
+        {ViewToggle}
+        <StoryPresentation />
+      </div>
+    );
+  }
+
   if (loading || !metrics) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Activity className="w-5 h-5 text-[#2e4e84] animate-pulse mr-2" />
-        <span className="text-[#4a5260]">Loading QC metrics...</span>
+      <div>
+        {ViewToggle}
+        <div className="flex items-center justify-center h-64">
+          <Activity className="w-5 h-5 text-[#2e4e84] animate-pulse mr-2" />
+          <span className="text-[#4a5260]">Loading QC metrics...</span>
+        </div>
       </div>
     );
   }
@@ -252,12 +301,14 @@ export default function Dashboard() {
     : 0;
 
   return (
+    <div>
+      {ViewToggle}
     <div className="p-8 space-y-8 max-w-[1400px]">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold">SNAP QC Early Warning Dashboard</h1>
         <p className="text-sm text-[#4a5260] mt-1">
-          Michigan — {metrics.total_cases} QC sample cases reviewed · {metrics.flagged_cases} flagged with data warnings
+          {state} — {metrics.total_cases} QC sample cases reviewed · {metrics.flagged_cases} flagged with data warnings
         </p>
       </div>
 
@@ -279,10 +330,10 @@ export default function Dashboard() {
         />
         <KPICard
           title="Error Rate"
-          value={`${metrics.error_rate_pct}%`}
+          value={`${profileRate ?? metrics.error_rate_pct}%`}
           icon={TrendingUp}
-          color="text-[#2e4e84]"
-          subtitle="of sampled cases"
+          color={(profileRate ?? metrics.error_rate_pct) > 6 ? 'text-red-600' : 'text-green-700'}
+          subtitle="FY2024 QC rate"
         />
         <KPICard
           title="Cases Reviewed"
@@ -302,8 +353,8 @@ export default function Dashboard() {
           <div className="flex-1">
             <p className="text-sm font-semibold text-green-700">Penalty Avoidance Opportunity — Act Before Oct 2026</p>
             <p className="text-xs text-[#4a5260] mt-1 leading-relaxed">
-              Michigan's cost-share shifts from <strong className="font-bold text-[#022569]">50% → 75%</strong> of each QC error dollar on Oct 1, 2026.
-              Correcting the <strong className="font-bold text-[#022569]">{metrics.high_risk + metrics.medium_risk} HIGH/MEDIUM cases</strong> before QC review saves Michigan{' '}
+              {state}'s cost-share shifts from <strong className="font-bold text-[#022569]">50% → 75%</strong> of each QC error dollar on Oct 1, 2026.
+              Correcting the <strong className="font-bold text-[#022569]">{metrics.high_risk + metrics.medium_risk} HIGH/MEDIUM cases</strong> before QC review saves {state}{' '}
               <strong className="text-green-700">${metrics.penalty_savings_potential.toLocaleString()}</strong> in state cost-share.
               Inaction adds <strong className="text-red-600">${metrics.penalty_additional_risk.toLocaleString()}</strong> in new exposure from the 25pp rate increase alone.
             </p>
@@ -326,7 +377,7 @@ export default function Dashboard() {
       </div>
 
       {/* ROI Calculator */}
-      <ROICalculator metrics={metrics} />
+      <ROICalculator metrics={metrics} profileRate={profileRate} />
 
       {/* Row 1: Error types pie + trend bars */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -425,7 +476,7 @@ export default function Dashboard() {
         <div>
           <p className="text-sm font-semibold text-amber-600">Policy Action Required — October 2026</p>
           <p className="text-xs text-[#4a5260] mt-1">
-            Federal SNAP administrative cost-share shifts from 50/50 to 25/75 on Oct 1, 2026 — every QC error dollar now costs Michigan $0.75 instead of $0.50.
+            Federal SNAP administrative cost-share shifts from 50/50 to 25/75 on Oct 1, 2026 — every QC error dollar now costs {state} $0.75 instead of $0.50.
             January 2027 Medicaid work requirements + twice-yearly redeterminations put <strong className="font-bold text-[#022569]">40,000 SNAP recipients</strong> at procedural churn risk.
             Use the AI Assistant tab to analyze specific cases and identify systemic error patterns.
           </p>
@@ -451,6 +502,7 @@ export default function Dashboard() {
           <p className="text-xs text-[#4a5260] mt-1">Low-risk cases</p>
         </div>
       </div>
+    </div>
     </div>
   );
 }

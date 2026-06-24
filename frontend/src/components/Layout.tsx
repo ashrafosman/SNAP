@@ -2,16 +2,21 @@ import { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, ClipboardList, MessageSquare,
-  Layers, Settings, Database, ChevronDown, ShieldAlert,
+  Layers, Settings, Database, ChevronDown, ShieldAlert, GitBranch, BarChart3, Map,
+  Sun, Moon,
 } from 'lucide-react';
 import { useRole, ROLES, type Role } from '../context/RoleContext';
 import { useBranding } from '../context/AppConfigContext';
+import { useTheme } from '../context/ThemeContext';
 
 const ALL_NAV = [
   { to: '/' as const,         icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/reports' as const,  icon: BarChart3,        label: 'Reports' },
   { to: '/queue' as const,    icon: ClipboardList,   label: 'Case Queue' },
+  { to: '/signals' as const,  icon: GitBranch,       label: 'Signals' },
   { to: '/catalog' as const,  icon: Database,        label: 'Data Catalog' },
   { to: '/chat' as const,     icon: MessageSquare,   label: 'AI Assistant' },
+  { to: '/map' as const,      icon: Map,             label: 'Geo Map' },
   { to: '/pipeline' as const, icon: Layers,          label: 'Pipeline' },
   { to: '/settings' as const, icon: Settings,        label: 'Settings' },
 ];
@@ -31,6 +36,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const { theme, toggle } = useTheme();
 
   const roleDef = ROLES[role];
   const dotColor = ROLE_DOT[role];
@@ -54,8 +60,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         {/* Brand */}
         <div className="flex items-center gap-3 px-5 border-r border-white/[.14] shrink-0">
-          <div className="w-9 h-9 rounded-lg bg-[#f1ad02] flex items-center justify-center shrink-0">
-            <ShieldAlert className="w-5 h-5 text-[#1f1611]" />
+          <div className="w-9 h-9 rounded-lg bg-[#f1ad02] flex items-center justify-center shrink-0 overflow-hidden">
+            {branding.icon_url
+              ? <img src={branding.icon_url} alt={branding.state} className="w-full h-full object-contain p-0.5" onError={e => { (e.target as HTMLImageElement).style.display='none'; }} />
+              : <ShieldAlert className="w-5 h-5 text-[#1f1611]" />
+            }
           </div>
           <div>
             <p className="text-[9.5px] text-white/[.65] uppercase tracking-[.14em] font-bold leading-none">
@@ -102,9 +111,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <ChevronDown className={`w-3 h-3 text-white/50 transition-transform ${open ? 'rotate-180' : ''}`} />
           </button>
 
-          <span className="text-[10px] font-semibold text-white/50 uppercase tracking-[.06em] whitespace-nowrap hidden sm:block">
-            Powered by Databricks
-          </span>
+          <button
+            type="button"
+            onClick={toggle}
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+          >
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
+
 
           {/* Role dropdown */}
           {open && (
@@ -141,7 +156,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* ── Breadcrumb strip ── */}
       <div
-        className="fixed top-16 left-0 right-0 h-11 bg-white border-b border-[#D7D7D7] flex items-center gap-2 px-7 z-40 text-sm text-[#4a5260]"
+        className="fixed top-16 left-0 right-0 h-11 bg-white border-b border-[#D7D7D7] flex items-center gap-2 px-7 z-40 text-sm text-[#4a5260] transition-colors"
         style={{ borderTop: '3px solid #f1ad02' }}
       >
         <span>Home</span>

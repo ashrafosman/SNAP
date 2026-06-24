@@ -22,6 +22,7 @@ def get_all_cases(
     severity: Optional[str] = None,
     status: Optional[str] = None,
     search: Optional[str] = None,
+    cities: Optional[list[str]] = None,
     sort_by: str = "risk_score",
     page: int = 1,
     page_size: int = 50,
@@ -35,6 +36,9 @@ def get_all_cases(
         results = [c for c in results if c["severity"] == severity.upper()]
     if status:
         results = [c for c in results if c["status"] == status]
+    if cities:
+        cities_lower = {c.lower() for c in cities}
+        results = [c for c in results if c["city"].lower() in cities_lower]
     if search:
         q = search.lower()
         results = [

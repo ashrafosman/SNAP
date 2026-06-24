@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Database, Layers, X, Table2 } from 'lucide-react';
 import { useAppConfig } from '../context/AppConfigContext';
 import type { DataSource, UseCase } from '../lib/api';
+import { LineageGraph } from '../components/LineageGraph';
 
 type MedTab = 'bronze' | 'silver' | 'gold' | 'use_cases';
 
@@ -366,6 +367,9 @@ export default function DataCatalog() {
             </div>
           ))}
         </div>
+
+        {/* Lineage graph */}
+        <LineageGraph />
 
         {/* Medallion tabs */}
         <div className="flex border-b-2 border-[#D7D7D7] mb-5">

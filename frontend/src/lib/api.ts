@@ -142,19 +142,81 @@ export interface BrandingConfig {
   accent_color: string;
   tagline: string;
   footer_alert: string;
+  icon_url?: string;
+  error_rate_pct?: number;
+  projected_liability?: string;
+  snap_benefits_annual_b?: number;
+}
+
+export interface BrandingProfile extends BrandingConfig {
+  id: string;
+  name: string;
+  is_active?: boolean;
+  error_rate_pct?: number;
+  projected_liability?: string;
+  snap_benefits_annual_b?: number;
 }
 
 export interface AppConfig extends BrandingConfig {
   data_sources: DataSource[];
   use_cases: UseCase[];
+  profiles: BrandingProfile[];
+  active_profile_id?: string;
+}
+
+export interface Signal {
+  id: string;
+  case_id: number;
+  case_name: string;
+  city: string;
+  state: string;
+  signal_type: 'death_match' | 'medicaid_gap' | 'unreported_birth' | 'adt_trigger' | 'missed_deduction';
+  severity: 'HIGH' | 'MEDIUM' | 'LOW';
+  source_datasets: string[];
+  description: string;
+  detected_at: string;
+  status: 'open' | 'reviewed' | 'dismissed';
+  error_amount: number;
+}
+
+export interface SignalSummary {
+  open: number;
+  reviewed: number;
+  dismissed: number;
+  by_type: Record<string, number>;
+  by_severity: Record<string, number>;
+}
+
+export interface SignalsResponse {
+  total: number;
+  page: number;
+  page_size: number;
+  pages: number;
+  signals: Signal[];
+  summary: SignalSummary;
+}
+
+export interface ErrorTypeMetric {
+  error_type: string;
+  count: number;
+  total_exposure: number;
+}
+
+export interface CityMetric {
+  city: string;
+  count: number;
+  high: number;
+  exposure: number;
 }
 
 export const api = {
   cases: {
-    list: (params: Record<string, string | number | undefined> = {}): Promise<CaseListResponse> => {
+    list: (params: Record<string, string | number | string[] | undefined> = {}): Promise<CaseListResponse> => {
       const q = new URLSearchParams();
       for (const [k, v] of Object.entries(params)) {
-        if (v !== undefined && v !== '') q.set(k, String(v));
+        if (v === undefined || v === '') continue;
+        if (Array.isArray(v)) v.forEach(item => q.append(k, item));
+        else q.set(k, String(v));
       }
       return fetchJson(`/cases?${q}`);
     },
@@ -201,6 +263,21 @@ export const api = {
       return r;
     },
   },
+  signals: {
+    list: (params: Record<string, string | number | undefined> = {}): Promise<SignalsResponse> => {
+      const q = new URLSearchParams();
+      for (const [k, v] of Object.entries(params)) {
+        if (v !== undefined && v !== '') q.set(k, String(v));
+      }
+      return fetchJson(`/signals?${q}`);
+    },
+    updateStatus: (id: string, status: string) =>
+      fetchJson(`/signals/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      }),
+  },
   settings: {
     getConfig: (): Promise<AppConfig> => fetchJson('/settings/config'),
     saveConfig: (data: AppConfig): Promise<AppConfig> =>
@@ -209,5 +286,18 @@ export const api = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       }),
+  },
+  profiles: {
+    list: (): Promise<BrandingProfile[]> => fetchJson('/profiles'),
+    save: (p: BrandingProfile): Promise<BrandingProfile> =>
+      fetchJson('/profiles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(p),
+      }),
+    activate: (id: string): Promise<BrandingProfile> =>
+      fetchJson(`/profiles/${id}/activate`, { method: 'PUT' }),
+    delete: (id: string): Promise<{ deleted: string }> =>
+      fetchJson(`/profiles/${id}`, { method: 'DELETE' }),
   },
 };

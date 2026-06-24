@@ -1,6 +1,6 @@
 """Case queue routes for SNAP QC Early Warning System."""
 from fastapi import APIRouter, HTTPException, Query
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel
 from ..data_store import get_all_cases, get_case, update_case_status
 from ..checklist_store import get_checklist, save_checklist_item
@@ -23,11 +23,12 @@ def list_cases(
     severity: Optional[str] = Query(None, description="HIGH | MEDIUM | LOW"),
     status: Optional[str] = Query(None, description="pending | reviewed | resolved"),
     search: Optional[str] = Query(None),
+    cities: Optional[List[str]] = Query(None, description="Filter to specific cities (repeatable)"),
     sort_by: str = Query("risk_score", description="risk_score | error_amount | id"),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
 ):
-    return get_all_cases(severity=severity, status=status, search=search, sort_by=sort_by, page=page, page_size=page_size)
+    return get_all_cases(severity=severity, status=status, search=search, cities=cities, sort_by=sort_by, page=page, page_size=page_size)
 
 
 @router.get("/{case_id}")

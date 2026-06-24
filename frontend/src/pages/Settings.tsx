@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { ShieldAlert, Save, Database, Target } from 'lucide-react';
+import { ShieldAlert, Save, Database, Target, Plus, Check, Pencil, Trash2 } from 'lucide-react';
 import { useAppConfig } from '../context/AppConfigContext';
-import { api, type AppConfig, type DataSource, type UseCase } from '../lib/api';
+import { api, type AppConfig, type DataSource, type UseCase, type BrandingProfile } from '../lib/api';
 
 type Tab = 'branding' | 'data_sources' | 'use_cases';
 
@@ -57,7 +57,7 @@ export default function Settings() {
       </div>
 
       {tab === 'branding' && (
-        <BrandingTab draft={draft} setDraft={setDraft} />
+        <BrandingTab draft={draft} setDraft={setDraft} onConfigSaved={setConfig} />
       )}
       {tab === 'data_sources' && (
         <DataSourcesTab draft={draft} setDraft={setDraft} />
@@ -66,91 +66,310 @@ export default function Settings() {
         <UseCasesTab draft={draft} setDraft={setDraft} />
       )}
 
-      {/* Save bar */}
-      <div className="mt-8 flex items-center gap-4">
-        <button
-          onClick={save}
-          disabled={saving}
-          className="flex items-center gap-2 px-5 py-2 text-white text-sm font-semibold rounded-lg disabled:opacity-50 transition-colors"
-          style={{ backgroundColor: draft.accent_color }}
-        >
-          <Save className="w-4 h-4" />
-          {saving ? 'Saving…' : 'Save Changes'}
-        </button>
-        {saved && <span className="text-sm text-green-700">Saved!</span>}
-        {error && <span className="text-sm text-red-600">{error}</span>}
-      </div>
+      {/* Save bar — only for data sources and use cases */}
+      {tab !== 'branding' && (
+        <div className="mt-8 flex items-center gap-4">
+          <button
+            onClick={save}
+            disabled={saving}
+            className="flex items-center gap-2 px-5 py-2 text-white text-sm font-semibold rounded-lg disabled:opacity-50 transition-colors"
+            style={{ backgroundColor: draft.accent_color }}
+          >
+            <Save className="w-4 h-4" />
+            {saving ? 'Saving…' : 'Save Changes'}
+          </button>
+          {saved && <span className="text-sm text-green-700">Saved!</span>}
+          {error && <span className="text-sm text-red-600">{error}</span>}
+        </div>
+      )}
     </div>
   );
 }
 
 // ── Branding Tab ──────────────────────────────────────────────────────────────
 
-function BrandingTab({ draft, setDraft }: { draft: AppConfig; setDraft: (d: AppConfig) => void }) {
-  const set = (key: keyof Omit<AppConfig, 'data_sources' | 'use_cases'>, value: string) =>
-    setDraft({ ...draft, [key]: value });
+const EMPTY_PROFILE: BrandingProfile = {
+  id: '', name: '', state: '', agency_name: '', program_name: 'SNAP QC Guard',
+  tagline: 'Early Warning System', accent_color: '#2e4e84',
+  footer_alert: '', icon_url: '',
+  error_rate_pct: 6.06, projected_liability: '~$200M', snap_benefits_annual_b: 4.0,
+};
+
+function BrandingTab({
+  draft, setDraft, onConfigSaved,
+}: {
+  draft: AppConfig;
+  setDraft: (d: AppConfig) => void;
+  onConfigSaved: (c: AppConfig) => void;
+}) {
+  const { activateProfile } = useAppConfig();
+  const [editingProfile, setEditingProfile] = useState<BrandingProfile | null>(null);
+  const [isNewProfile, setIsNewProfile] = useState(false);
+  const [activating, setActivating] = useState<string | null>(null);
+
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const saveProfile = async (p: BrandingProfile) => {
+    // Optimistic update
+    const profiles = isNewProfile
+      ? [...(draft.profiles ?? []), { ...p, is_active: false }]
+      : (draft.profiles ?? []).map(x => x.id === p.id ? { ...p, is_active: x.is_active } : x);
+    setEditingProfile(null);
+    setDraft({ ...draft, profiles });
+    onConfigSaved({ ...draft, profiles });
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await api.profiles.save(p);
+    } catch (e: unknown) {
+      setSaveError(e instanceof Error ? e.message : 'Save failed');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteProfile = async (id: string) => {
+    const profiles = (draft.profiles ?? []).filter(p => p.id !== id);
+    setDraft({ ...draft, profiles });
+    onConfigSaved({ ...draft, profiles });
+    try {
+      await api.profiles.delete(id);
+    } catch (e: unknown) {
+      setSaveError(e instanceof Error ? e.message : 'Delete failed');
+    }
+  };
+
+  const handleActivate = async (profile: BrandingProfile) => {
+    setActivating(profile.id);
+    try {
+      await activateProfile(profile, draft.profiles ?? []);
+      const { id, name, is_active, ...branding } = profile as any;
+      setDraft({ ...draft, ...branding, active_profile_id: id });
+    } finally {
+      setActivating(null);
+    }
+  };
+
+  const profiles = draft.profiles ?? [];
 
   return (
-    <div className="grid grid-cols-2 gap-6">
-      <div className="col-span-2 lg:col-span-1 space-y-4">
-        {[
-          { key: 'program_name' as const, label: 'Program Name', placeholder: 'SNAP QC Guard' },
-          { key: 'agency_name' as const, label: 'Agency Name', placeholder: 'Michigan SNAP' },
-          { key: 'state' as const, label: 'State', placeholder: 'Michigan' },
-          { key: 'tagline' as const, label: 'Tagline', placeholder: 'Early Warning System' },
-        ].map(({ key, label, placeholder }) => (
+    <div className="space-y-8">
+
+      {/* ── Profiles section ── */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <p className="text-sm font-semibold text-[#022569]">Branding Profiles</p>
+            <p className="text-xs text-[#6b7280]">Save and switch between deployments for different states</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {saving && <span className="text-xs text-[#6b7280]">Saving…</span>}
+            {saveError && <span className="text-xs text-red-600">{saveError}</span>}
+            <button
+              onClick={() => { setEditingProfile({ ...EMPTY_PROFILE }); setIsNewProfile(true); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#022569] text-white text-xs font-semibold rounded-lg hover:bg-[#2e4e84] transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" /> New Profile
+            </button>
+          </div>
+        </div>
+
+        {editingProfile && (
+          <ProfileForm
+            profile={editingProfile}
+            isNew={isNewProfile}
+            onChange={setEditingProfile}
+            onSave={saveProfile}
+            onCancel={() => setEditingProfile(null)}
+          />
+        )}
+
+        {profiles.length === 0 && !editingProfile && (
+          <div className="text-center py-8 border border-dashed border-[#D7D7D7] rounded-xl text-xs text-[#6b7280]">
+            No profiles yet — create one to save and switch between state deployments
+          </div>
+        )}
+
+        {profiles.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {profiles.map(p => {
+              const isActive = draft.active_profile_id === p.id;
+              return (
+                <div
+                  key={p.id}
+                  className={`relative border rounded-xl p-4 transition-all ${
+                    isActive
+                      ? 'border-[#022569] bg-[#022569]/5 ring-1 ring-[#022569]/20'
+                      : 'border-[#D7D7D7] bg-white hover:border-[#2e4e84]'
+                  }`}
+                >
+                  {isActive && (
+                    <span className="absolute top-3 right-3 flex items-center gap-1 text-[9px] font-bold text-[#022569] bg-[#022569]/10 px-1.5 py-0.5 rounded-full">
+                      <Check className="w-2.5 h-2.5" /> Active
+                    </span>
+                  )}
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-lg bg-[#f1ad02] flex items-center justify-center shrink-0 overflow-hidden">
+                      {p.icon_url
+                        ? <img src={p.icon_url} alt={p.state} className="w-full h-full object-contain p-1" onError={e => { (e.target as HTMLImageElement).style.display='none'; }} />
+                        : <ShieldAlert className="w-5 h-5 text-[#1f1611]" />
+                      }
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-[#022569] truncate">{p.name || p.state}</p>
+                      <p className="text-[10px] text-[#6b7280] truncate">{p.agency_name}</p>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-[#4a5260] mb-3 truncate">{p.tagline} · {p.state}</p>
+                  <div className="flex items-center gap-2">
+                    {!isActive && (
+                      <button
+                        onClick={() => handleActivate(p)}
+                        disabled={activating === p.id}
+                        className="flex-1 text-xs font-semibold py-1.5 rounded-lg bg-[#022569] text-white hover:bg-[#2e4e84] disabled:opacity-50 transition-colors"
+                      >
+                        {activating === p.id ? 'Activating…' : 'Activate'}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => { setEditingProfile({ ...p }); setIsNewProfile(false); }}
+                      className="p-1.5 rounded-lg border border-[#D7D7D7] text-[#4a5260] hover:text-[#022569] hover:border-[#022569] transition-colors"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    {!isActive && (
+                      <button
+                        onClick={() => deleteProfile(p.id)}
+                        className="p-1.5 rounded-lg border border-[#D7D7D7] text-[#4a5260] hover:text-red-600 hover:border-red-200 transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+    </div>
+  );
+}
+
+function ProfileForm({
+  profile, isNew, onChange, onSave, onCancel,
+}: {
+  profile: BrandingProfile;
+  isNew: boolean;
+  onChange: (p: BrandingProfile) => void;
+  onSave: (p: BrandingProfile) => void;
+  onCancel: () => void;
+}) {
+  const set = (key: keyof BrandingProfile, val: string) => onChange({ ...profile, [key]: val });
+
+  return (
+    <div className="border border-[#2e4e84]/30 bg-[#eaf0f9] rounded-xl p-4 mb-4">
+      <p className="text-sm font-bold text-[#022569] mb-4">{isNew ? 'New Profile' : 'Edit Profile'}</p>
+      <div className="grid grid-cols-2 gap-3">
+        {([
+          ['id', 'ID (slug)', 'washington-snap'],
+          ['name', 'Profile Name', 'Washington State'],
+          ['state', 'State', 'Washington'],
+          ['agency_name', 'Agency Name', 'WA DSHS'],
+          ['program_name', 'Program Name', 'SNAP QC Guard'],
+          ['tagline', 'Tagline', 'Early Warning System'],
+        ] as [keyof BrandingProfile, string, string][]).map(([key, label, placeholder]) => (
           <div key={key}>
             <label className="block text-xs font-medium text-[#4a5260] mb-1">{label}</label>
             <input
-              type="text"
-              value={draft[key] as string}
+              value={profile[key] as string}
               onChange={e => set(key, e.target.value)}
               placeholder={placeholder}
-              className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded-lg px-3 py-2 text-sm text-[#1f2330] focus:outline-none focus:border-[#2e4e84]"
+              disabled={key === 'id' && !isNew}
+              className="w-full bg-white border border-[#D7D7D7] rounded-lg px-3 py-2 text-sm text-[#1f2330] focus:outline-none focus:border-[#2e4e84] disabled:opacity-50"
             />
           </div>
         ))}
+        <div className="col-span-2">
+          <label className="block text-xs font-medium text-[#4a5260] mb-1">State Icon URL</label>
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-lg bg-[#f1ad02] flex items-center justify-center shrink-0 overflow-hidden border border-[#D7D7D7]">
+              {profile.icon_url
+                ? <img src={profile.icon_url} alt="icon" className="w-full h-full object-contain p-0.5" onError={e => { (e.target as HTMLImageElement).style.display='none'; }} />
+                : <ShieldAlert className="w-4 h-4 text-[#1f1611]" />
+              }
+            </div>
+            <input
+              type="url"
+              value={profile.icon_url ?? ''}
+              onChange={e => set('icon_url', e.target.value)}
+              placeholder="https://example.gov/state-seal.png"
+              className="flex-1 bg-white border border-[#D7D7D7] rounded-lg px-3 py-2 text-sm text-[#1f2330] focus:outline-none focus:border-[#2e4e84]"
+            />
+          </div>
+        </div>
         <div>
           <label className="block text-xs font-medium text-[#4a5260] mb-1">Accent Color</label>
-          <div className="flex items-center gap-3">
-            <input
-              type="color"
-              value={draft.accent_color}
-              onChange={e => set('accent_color', e.target.value)}
-              className="w-10 h-10 rounded cursor-pointer border border-[#D7D7D7] bg-transparent"
-            />
-            <input
-              type="text"
-              value={draft.accent_color}
-              onChange={e => set('accent_color', e.target.value)}
-              className="flex-1 bg-[#F4F4F4] border border-[#D7D7D7] rounded-lg px-3 py-2 text-sm text-[#1f2330] font-mono focus:outline-none focus:border-[#2e4e84]"
-            />
+          <div className="flex gap-2">
+            <input type="color" value={profile.accent_color} onChange={e => set('accent_color', e.target.value)}
+              className="w-10 h-10 rounded cursor-pointer border border-[#D7D7D7] bg-transparent" />
+            <input type="text" value={profile.accent_color} onChange={e => set('accent_color', e.target.value)}
+              className="flex-1 bg-white border border-[#D7D7D7] rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:border-[#2e4e84]" />
           </div>
         </div>
+
+        {/* QC Rate fields */}
+        <div className="col-span-2 border-t border-[#D7D7D7] pt-3 mt-1">
+          <p className="text-xs font-semibold text-[#022569] mb-3">QC Metrics</p>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-[#4a5260] mb-1">Error Rate % (FY2024)</label>
+              <input
+                type="number" step="0.01" min="0" max="30"
+                value={profile.error_rate_pct ?? 6.06}
+                onChange={e => onChange({ ...profile, error_rate_pct: parseFloat(e.target.value) || 0 })}
+                className="w-full bg-white border border-[#D7D7D7] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2e4e84]"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-[#4a5260] mb-1">Projected Liability</label>
+              <input
+                type="text"
+                value={profile.projected_liability ?? '~$200M'}
+                onChange={e => onChange({ ...profile, projected_liability: e.target.value })}
+                placeholder="~$200M"
+                className="w-full bg-white border border-[#D7D7D7] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2e4e84]"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-[#4a5260] mb-1">Annual SNAP Benefits ($B)</label>
+              <input
+                type="number" step="0.1" min="0"
+                value={profile.snap_benefits_annual_b ?? 4.0}
+                onChange={e => onChange({ ...profile, snap_benefits_annual_b: parseFloat(e.target.value) || 0 })}
+                className="w-full bg-white border border-[#D7D7D7] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2e4e84]"
+              />
+            </div>
+          </div>
+        </div>
+
         <div>
           <label className="block text-xs font-medium text-[#4a5260] mb-1">Footer Alert</label>
-          <textarea
-            value={draft.footer_alert}
-            onChange={e => set('footer_alert', e.target.value)}
-            rows={3}
-            className="w-full bg-[#F4F4F4] border border-[#D7D7D7] rounded-lg px-3 py-2 text-sm text-[#1f2330] focus:outline-none focus:border-[#2e4e84] resize-none"
-          />
+          <textarea value={profile.footer_alert} onChange={e => set('footer_alert', e.target.value)} rows={2}
+            className="w-full bg-white border border-[#D7D7D7] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2e4e84] resize-none" />
         </div>
       </div>
-
-      {/* Live preview */}
-      <div className="col-span-2 lg:col-span-1">
-        <p className="text-xs font-medium text-[#4a5260] mb-3">Sidebar Preview</p>
-        <div className="w-48 bg-white border border-[#D7D7D7] rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-1">
-            <ShieldAlert className="w-4 h-4" style={{ color: draft.accent_color }} />
-            <span className="text-xs font-bold">{draft.program_name || 'Program Name'}</span>
-          </div>
-          <p className="text-[10px] text-[#4a5260] mb-4">{draft.tagline} — {draft.state}</p>
-          <div className="border-t border-[#D7D7D7] pt-3">
-            <p className="text-[10px] text-[#6b7280] leading-relaxed">{draft.footer_alert}</p>
-          </div>
-        </div>
+      <div className="flex gap-2 justify-end mt-4">
+        <button onClick={onCancel} className="px-4 py-1.5 text-xs text-[#4a5260] hover:text-[#022569]">Cancel</button>
+        <button
+          onClick={() => onSave(profile)}
+          disabled={!profile.id || !profile.name || !profile.state}
+          className="px-4 py-1.5 text-xs bg-[#022569] text-white rounded-lg hover:bg-[#2e4e84] disabled:opacity-40 transition-colors"
+        >
+          {isNew ? 'Add Profile' : 'Save Profile'}
+        </button>
       </div>
     </div>
   );

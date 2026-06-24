@@ -111,7 +111,7 @@ function JobStatusBadge({ job, onTrigger, running }: { job?: JobInfo; onTrigger?
   const isRunning = effectiveStatus === 'RUNNING';
 
   return (
-    <div className={`flex items-center gap-2 border border-[#1e1e2a] rounded-lg px-3 py-2 mb-3 transition-colors ${isRunning ? 'bg-cyan-400/5 border-cyan-400/20' : 'bg-[#111118]'}`}>
+    <div className={`flex items-center gap-2 border border-[#e5e7eb] rounded-lg px-3 py-2 mb-3 transition-colors ${isRunning ? 'bg-cyan-400/5 border-cyan-400/20' : 'bg-white'}`}>
       <div className={`w-2 h-2 rounded-full shrink-0 ${style.dot}`} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
@@ -188,7 +188,7 @@ function RunHistoryPanel({ layer, expanded, onToggle }: { layer: LayerKey; expan
         Run History
       </button>
       {expanded && (
-        <div className="bg-[#111118] border border-[#1e1e2a] rounded-lg p-2 space-y-1">
+        <div className="bg-white border border-[#e5e7eb] rounded-lg p-2 space-y-1">
           {loading && <p className="text-[10px] text-[#6b7280] text-center py-2">Loading...</p>}
           {!loading && history.length === 0 && (
             <p className="text-[10px] text-[#6b7280] text-center py-2">No runs yet — trigger a run above</p>
@@ -199,7 +199,7 @@ function RunHistoryPanel({ layer, expanded, onToggle }: { layer: LayerKey; expan
               ? new Date(run.start_time_ms).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
               : '—';
             return (
-              <div key={run.run_id || i} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[#1e1e2a]/50 transition-colors">
+              <div key={run.run_id || i} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[#eaf0f9] transition-colors">
                 <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${s.dot}`} />
                 <span className={`text-[10px] font-medium w-14 ${s.text}`}>{s.label}</span>
                 <span className="text-[10px] text-[#6b7280] flex-1">{ts}</span>
@@ -243,7 +243,7 @@ function PassRateRing({ rate, color }: { rate: number; color: string }) {
         x="36" y="36"
         textAnchor="middle" dominantBaseline="middle"
         className="rotate-90" style={{ transform: 'rotate(90deg)', transformOrigin: '36px 36px' }}
-        fill="white" fontSize="12" fontWeight="700"
+        fill={color} fontSize="12" fontWeight="700"
       >
         {rate}%
       </text>
@@ -292,7 +292,7 @@ function CheckRow({
   const allPassed = check.failed === 0;
 
   return (
-    <div className={`border border-[#1e1e2a] rounded-lg p-3 space-y-2 transition-all ${isEnabled ? 'bg-[#111118]' : 'bg-[#111118]/40 opacity-50'}`}>
+    <div className={`border border-[#e5e7eb] rounded-lg p-3 space-y-2 transition-all ${isEnabled ? 'bg-white' : 'bg-[#F4F4F4] opacity-50'}`}>
       <div className="flex items-start gap-2">
         {/* Toggle button */}
         <button
@@ -353,7 +353,7 @@ function CheckRow({
 
           {/* Stats row */}
           <div className="flex items-center gap-3 text-[10px]">
-            <span className="text-emerald-400">{check.passed} passed</span>
+            <span className="text-emerald-600">{check.passed} passed</span>
             {check.failed > 0 && <span className="text-red-600">{check.failed} failed</span>}
             {showExposure && check.exposure_at_risk !== undefined && check.exposure_at_risk > 0 && (
               <span className="text-amber-700 ml-auto">
@@ -363,7 +363,7 @@ function CheckRow({
           </div>
 
           {/* Impact */}
-          <p className="text-[10px] text-[#6b7280] italic border-t border-[#1e1e2a] pt-2">{check.impact}</p>
+          <p className="text-[10px] text-[#6b7280] italic border-t border-[#e5e7eb] pt-2">{check.impact}</p>
         </>
       )}
     </div>
@@ -587,7 +587,7 @@ export default function PipelineMonitor() {
       </div>
 
       {/* Flow diagram bar */}
-      <div className="flex items-center gap-2 bg-[#111118] border border-[#1e1e2a] rounded-xl p-4">
+      <div className="flex items-center gap-2 bg-white border border-[#e5e7eb] rounded-xl p-4">
         {(['bronze', 'silver', 'gold'] as const).map((layer, i) => {
           const job = jobs?.[layer];
           const isRunning = runningLayers.has(layer);
@@ -757,7 +757,7 @@ export default function PipelineMonitor() {
           </div>
 
           {/* Risk distribution */}
-          <div className="mt-3 bg-[#111118] border border-[#1e1e2a] rounded-lg p-3 space-y-2">
+          <div className="mt-3 bg-white border border-[#e5e7eb] rounded-lg p-3 space-y-2">
             <p className="text-[10px] font-semibold text-[#4a5260] uppercase tracking-wide">Risk Distribution</p>
             <div className="space-y-1.5">
               {[
@@ -783,7 +783,7 @@ export default function PipelineMonitor() {
           <div className="mt-3 bg-emerald-400/5 border border-emerald-400/20 rounded-lg p-3">
             <div className="flex items-center gap-2 mb-2">
               <Shield className="w-4 h-4 text-emerald-400 shrink-0" />
-              <p className="text-xs font-semibold text-emerald-400">Penalty Savings Potential</p>
+              <p className="text-xs font-semibold text-emerald-600">Penalty Savings Potential</p>
             </div>
             <div className="space-y-1 text-[10px]">
               <div className="flex justify-between">
@@ -792,7 +792,7 @@ export default function PipelineMonitor() {
               </div>
               <div className="flex justify-between">
                 <span className="text-[#6b7280]">Avoidable penalty (75%)</span>
-                <span className="text-emerald-400 font-bold">${gold.penalty_savings_potential.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+                <span className="text-emerald-600 font-bold">${gold.penalty_savings_potential.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
               </div>
             </div>
             <div className="mt-2 flex items-center gap-1 text-[10px] text-[#6b7280]">

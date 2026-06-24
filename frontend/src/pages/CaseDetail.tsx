@@ -8,7 +8,87 @@ import {
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import SeverityBadge from '../components/SeverityBadge';
-import { api, type Case, type DocumentAnalysis } from '../lib/api';
+import { api, type Case, type DocumentAnalysis, type Signal } from '../lib/api';
+
+/* ── Signal → verification mapping ───────────────────────── */
+const SIGNAL_ACTIONS: Record<string, {
+  color: string; bg: string; border: string; label: string;
+  questions: string[]; verifications: string[]; documents: string[];
+}> = {
+  death_match: {
+    color: '#dc2626', bg: '#fef2f2', border: '#fecaca', label: 'Death Match',
+    questions: [
+      'Can you confirm the case holder is currently alive and residing at the listed address?',
+      'Are all household members listed on this case still living at the address on record?',
+    ],
+    verifications: [
+      'Cross-check SSA death index against case holder and all household members.',
+      'Attempt phone contact with the household to confirm continued eligibility.',
+      'Initiate a home visit if phone contact is unsuccessful.',
+    ],
+    documents: ['Signed declaration of continued eligibility', 'Government-issued photo ID for case holder'],
+  },
+  medicaid_gap: {
+    color: '#d97706', bg: '#fffbeb', border: '#fde68a', label: 'Medicaid Gap',
+    questions: [
+      'Are all household members currently enrolled in Medicaid?',
+      'Has anyone in the household lost Medicaid coverage in the past 6 months?',
+      'Did any household member experience a qualifying life event that would affect Medicaid eligibility?',
+    ],
+    verifications: [
+      'Verify Medicaid enrollment status for all household members in MMIS.',
+      'Confirm that Medicaid eligibility dates overlap with the SNAP benefit period.',
+      'Check for recent disenrollment events or gaps in coverage.',
+    ],
+    documents: ['Medicaid eligibility confirmation letter', 'Insurance enrollment documentation'],
+  },
+  unreported_birth: {
+    color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe', label: 'Unreported Birth',
+    questions: [
+      'Has anyone in the household had a child since your last SNAP certification?',
+      'Has your household size changed for any reason since the last review?',
+      'Are there any household members not currently listed on the case?',
+    ],
+    verifications: [
+      'Compare vital records birth data against reported household composition.',
+      'Recalculate the maximum allotment for the updated household size.',
+      'Update household composition in the case management system and re-determine eligibility.',
+    ],
+    documents: ['Birth certificate for any unreported household member', 'Updated household declaration form'],
+  },
+  adt_trigger: {
+    color: '#0891b2', bg: '#ecfeff', border: '#a5f3fc', label: 'ADT Trigger',
+    questions: [
+      'Was anyone in your household recently hospitalized or discharged from a medical facility?',
+      'Did your household\'s income or employment status change following any recent medical event?',
+      'Is there a household member who is temporarily absent due to a medical stay?',
+    ],
+    verifications: [
+      'Review ADT encounter records to confirm dates and reason for discharge.',
+      'Verify current employment and income status following the discharge event.',
+      'Confirm whether the hospitalization affects household composition or resource availability.',
+    ],
+    documents: ['Hospital discharge summary', 'Recent pay stubs or income verification post-discharge'],
+  },
+  missed_deduction: {
+    color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0', label: 'Missed Deduction',
+    questions: [
+      'Does anyone in your household have ongoing medical expenses that were not reported?',
+      'What recurring out-of-pocket medical costs does your household pay monthly?',
+      'Has anyone in the household been prescribed medication or ongoing treatment not covered by insurance?',
+    ],
+    verifications: [
+      'Review EHR records for documented chronic conditions and associated medical costs.',
+      'Calculate the medical expense deduction and its impact on the net income calculation.',
+      'Recalculate the benefit amount with applicable medical deductions applied.',
+    ],
+    documents: [
+      'Medical bills or receipts for out-of-pocket expenses',
+      'Prescription medication receipts (3+ months)',
+      'Documentation of medical costs not covered by insurance',
+    ],
+  },
+};
 
 interface Message { role: 'user' | 'assistant'; content: string; }
 type RightTab = 'copilot' | 'chat' | 'docs';
@@ -55,6 +135,9 @@ export default function CaseDetail() {
     });
   }, [caseData, saveItem]);
 
+  // Cross-dataset signals for this case
+  const [caseSignals, setCaseSignals] = useState<Signal[]>([]);
+
   // Document upload state
   const [docResult, setDocResult] = useState<DocumentAnalysis | null>(null);
   const [docLoading, setDocLoading] = useState(false);
@@ -67,9 +150,9 @@ export default function CaseDetail() {
     const caseId = Number(id);
     api.cases.get(caseId).then(c => {
       setCase(c);
-      // Load persisted checklist
       api.checklist.get(caseId).then(res => setChecklist(res.items)).catch(() => {});
     }).finally(() => setLoading(false));
+    api.signals.list({ case_id: caseId }).then(r => setCaseSignals(r.signals)).catch(() => {});
   }, [id]);
 
   useEffect(() => {
@@ -159,7 +242,7 @@ export default function CaseDetail() {
   return (
     <div className="p-8 max-w-[1400px]">
       {/* Back */}
-      <button onClick={() => navigate('/queue')} className="flex items-center gap-1.5 text-[#4a5260] hover:text-white text-sm mb-6 transition-colors">
+      <button onClick={() => navigate('/queue')} className="flex items-center gap-1.5 text-[#4a5260] hover:text-[#022569] text-sm mb-6 transition-colors">
         <ArrowLeft className="w-4 h-4" /> Back to queue
       </button>
 
@@ -180,9 +263,9 @@ export default function CaseDetail() {
               onClick={() => handleStatusChange(s)}
               className={`px-4 py-2 rounded-lg text-xs font-semibold border transition-colors capitalize ${
                 c.status === s
-                  ? s === 'resolved' ? 'bg-green-500/20 border-green-500/40 text-green-300'
-                    : s === 'reviewed' ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
-                    : 'bg-white border-[#2e4e84]/40 text-[#2e4e84]'
+                  ? s === 'resolved' ? 'bg-green-50 border-green-300 text-green-700'
+                    : s === 'reviewed' ? 'bg-amber-50 border-amber-300 text-amber-700'
+                    : 'bg-[#eaf0f9] border-[#2e4e84]/40 text-[#2e4e84]'
                   : 'bg-transparent border-[#D7D7D7] text-[#4a5260] hover:border-[#6b7280]'
               }`}
             >
@@ -231,7 +314,7 @@ export default function CaseDetail() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-xs font-semibold text-white">{f.factor}</span>
+                      <span className="text-xs font-semibold text-[#022569]">{f.factor}</span>
                     </div>
                     <div className="w-full h-1 rounded-full bg-[#D7D7D7] mb-1">
                       <div
@@ -252,11 +335,11 @@ export default function CaseDetail() {
             <div className="grid grid-cols-3 gap-4">
               <div className="text-center">
                 <p className="text-xs text-[#4a5260] mb-1">Reported Benefit</p>
-                <p className="text-xl font-bold text-white">${c.reported_benefit.toFixed(0)}</p>
+                <p className="text-xl font-bold text-[#022569]">${c.reported_benefit.toFixed(0)}</p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-[#4a5260] mb-1">QC Corrected</p>
-                <p className="text-xl font-bold text-white">${c.qc_benefit.toFixed(0)}</p>
+                <p className="text-xl font-bold text-[#022569]">${c.qc_benefit.toFixed(0)}</p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-[#4a5260] mb-1">Difference</p>
@@ -322,7 +405,7 @@ export default function CaseDetail() {
               <button
                 onClick={() => setRightTab('copilot')}
                 className={`flex items-center gap-1.5 px-4 py-3 text-xs font-semibold border-b-2 transition-colors ${
-                  rightTab === 'copilot' ? 'border-[#2e4e84] text-white' : 'border-transparent text-[#4a5260] hover:text-white'
+                  rightTab === 'copilot' ? 'border-[#2e4e84] text-[#022569]' : 'border-transparent text-[#4a5260] hover:text-[#022569]'
                 }`}
               >
                 <ClipboardList className="w-3.5 h-3.5" />
@@ -331,7 +414,7 @@ export default function CaseDetail() {
               <button
                 onClick={() => setRightTab('docs')}
                 className={`flex items-center gap-1.5 px-4 py-3 text-xs font-semibold border-b-2 transition-colors ${
-                  rightTab === 'docs' ? 'border-[#2e4e84] text-white' : 'border-transparent text-[#4a5260] hover:text-white'
+                  rightTab === 'docs' ? 'border-[#2e4e84] text-[#022569]' : 'border-transparent text-[#4a5260] hover:text-[#022569]'
                 }`}
               >
                 <Upload className="w-3.5 h-3.5" />
@@ -345,7 +428,7 @@ export default function CaseDetail() {
               <button
                 onClick={() => setRightTab('chat')}
                 className={`flex items-center gap-1.5 px-4 py-3 text-xs font-semibold border-b-2 transition-colors ${
-                  rightTab === 'chat' ? 'border-[#2e4e84] text-white' : 'border-transparent text-[#4a5260] hover:text-white'
+                  rightTab === 'chat' ? 'border-[#2e4e84] text-[#022569]' : 'border-transparent text-[#4a5260] hover:text-[#022569]'
                 }`}
               >
                 <MessageSquare className="w-3.5 h-3.5" />
@@ -363,7 +446,11 @@ export default function CaseDetail() {
               <div className="flex-1 overflow-y-auto p-4 space-y-5">
                 {/* Progress bar */}
                 {(() => {
-                  const totalItems = c.copilot.questions_to_ask.length + c.copilot.verification_actions.length;
+                  const signalItemCount = caseSignals.reduce((sum, sig) => {
+                    const m = SIGNAL_ACTIONS[sig.signal_type];
+                    return sum + (m ? m.questions.length + m.verifications.length : 0);
+                  }, 0);
+                  const totalItems = c.copilot.questions_to_ask.length + c.copilot.verification_actions.length + signalItemCount;
                   const doneItems = Object.values(checklist).filter(v => v.done).length;
                   const pct = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
                   return (
@@ -375,6 +462,77 @@ export default function CaseDetail() {
                     </div>
                   );
                 })()}
+
+                {/* Cross-Dataset Signal Alerts */}
+                {caseSignals.length > 0 && (
+                  <div>
+                    <h4 className="text-xs font-semibold text-[#4a5260] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
+                      Cross-Dataset Alerts
+                      <span className="ml-auto text-[10px] font-bold bg-red-50 text-red-600 border border-red-200 rounded-full px-2 py-0.5">
+                        {caseSignals.filter(s => s.status === 'open').length} open
+                      </span>
+                    </h4>
+                    <div className="space-y-3">
+                      {caseSignals.map(sig => {
+                        const meta = SIGNAL_ACTIONS[sig.signal_type];
+                        if (!meta) return null;
+                        const allItems = [
+                          ...meta.questions.map((q, i) => ({ key: `sig-${sig.id}-q-${i}`, text: q, kind: 'question' })),
+                          ...meta.verifications.map((v, i) => ({ key: `sig-${sig.id}-v-${i}`, text: v, kind: 'verify' })),
+                        ];
+                        return (
+                          <div
+                            key={sig.id}
+                            className="rounded-xl border overflow-hidden"
+                            style={{ borderColor: meta.border, borderLeftWidth: 4, borderLeftColor: meta.color }}
+                          >
+                            {/* Signal header */}
+                            <div className="px-3 py-2.5 flex items-center gap-2" style={{ background: meta.bg }}>
+                              <span className="text-[10px] font-extrabold uppercase tracking-wide rounded-full px-2 py-0.5 border" style={{ color: meta.color, borderColor: meta.border, background: '#fff' }}>
+                                {meta.label}
+                              </span>
+                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${sig.severity === 'HIGH' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
+                                {sig.severity}
+                              </span>
+                              <span className="ml-auto text-[10px] text-[#9ca3af]">{sig.detected_at}</span>
+                            </div>
+                            <p className="text-[11px] text-[#4a5260] px-3 py-2 leading-relaxed border-b border-[#F4F4F4]">{sig.description}</p>
+                            {/* Checkable items */}
+                            <div className="px-3 py-2 space-y-1.5 bg-white">
+                              <p className="text-[9.5px] font-bold uppercase tracking-wider text-[#9ca3af] mb-1.5">Required Actions</p>
+                              {allItems.map(({ key, text, kind }) => {
+                                const item = checklist[key] || { done: false, note: '' };
+                                return (
+                                  <div key={key} className={`flex items-start gap-2 rounded-lg p-2 transition-colors ${item.done ? 'bg-[#F4F4F4]' : kind === 'question' ? 'bg-[#eaf0f9]/60' : 'bg-green-50/60'}`}>
+                                    <button onClick={() => toggleDone(key)} className="shrink-0 mt-0.5">
+                                      <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-colors ${item.done ? 'bg-[#2e4e84] border-[#2e4e84]' : 'border-[#9ca3af] hover:border-[#2e4e84]'}`}>
+                                        {item.done && <CheckCircle2 className="w-2.5 h-2.5 text-white" />}
+                                      </div>
+                                    </button>
+                                    <p className={`text-[11px] leading-relaxed flex-1 ${item.done ? 'text-[#9ca3af] line-through' : 'text-[#4a5260]'}`}>{text}</p>
+                                  </div>
+                                );
+                              })}
+                              {/* Documents */}
+                              {meta.documents.length > 0 && (
+                                <div className="mt-2 pt-2 border-t border-[#F4F4F4]">
+                                  <p className="text-[9.5px] font-bold uppercase tracking-wider text-[#9ca3af] mb-1.5">Request Documents</p>
+                                  {meta.documents.map((d, i) => (
+                                    <div key={i} className="flex items-start gap-1.5 py-1">
+                                      <span className="text-amber-500 text-[10px] shrink-0 mt-0.5">📄</span>
+                                      <p className="text-[11px] text-[#4a5260]">{d}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <h4 className="text-xs font-semibold text-[#4a5260] uppercase tracking-wider mb-2 flex items-center gap-1.5">
@@ -422,13 +580,13 @@ export default function CaseDetail() {
 
                 <div>
                   <h4 className="text-xs font-semibold text-[#4a5260] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-amber-400" />
+                    <FileText className="w-3.5 h-3.5 text-amber-600" />
                     Documents to Request
                   </h4>
                   <div className="space-y-2">
                     {c.copilot.documents_to_request.map((d: string, i: number) => (
-                      <div key={i} className="flex items-start gap-2.5 bg-[#1e1a14] border border-amber-500/20 rounded-lg p-3">
-                        <span className="text-amber-400 text-xs shrink-0 mt-0.5">📄</span>
+                      <div key={i} className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                        <span className="text-amber-600 text-xs shrink-0 mt-0.5">📄</span>
                         <p className="text-xs text-[#4a5260] leading-relaxed">{d}</p>
                       </div>
                     ))}
@@ -437,7 +595,7 @@ export default function CaseDetail() {
 
                 <div>
                   <h4 className="text-xs font-semibold text-[#4a5260] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
                     Verification Actions
                   </h4>
                   <div className="space-y-2">
@@ -446,20 +604,20 @@ export default function CaseDetail() {
                       const item = checklist[key] || { done: false, note: '' };
                       const noteOpen = expandedNote === key;
                       return (
-                        <div key={key} className={`rounded-lg border transition-colors ${item.done ? 'bg-[#141e18]/50 border-green-500/10' : 'bg-[#141e18] border-green-500/20'}`}>
+                        <div key={key} className={`rounded-lg border transition-colors ${item.done ? 'bg-green-50/40 border-green-200/60' : 'bg-green-50 border-green-200'}`}>
                           <div className="flex items-start gap-2.5 p-3">
                             <button onClick={() => toggleDone(key)} className="shrink-0 mt-0.5">
-                              <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${item.done ? 'bg-green-500 border-green-500' : 'border-[#6b7280] hover:border-green-400'}`}>
+                              <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${item.done ? 'bg-green-600 border-green-600' : 'border-green-400 hover:border-green-600'}`}>
                                 {item.done && <CheckCircle2 className="w-3 h-3 text-white" />}
                               </div>
                             </button>
-                            <p className={`text-xs leading-relaxed flex-1 ${item.done ? 'text-[#4a5260] line-through' : 'text-[#4a5260]'}`}>{a}</p>
+                            <p className={`text-xs leading-relaxed flex-1 ${item.done ? 'text-[#9ca3af] line-through' : 'text-[#1f2330]'}`}>{a}</p>
                             <button
                               onClick={() => setExpandedNote(noteOpen ? null : key)}
-                              className="shrink-0 mt-0.5 text-[#6b7280] hover:text-[#4a5260] transition-colors"
+                              className="shrink-0 mt-0.5 text-[#9ca3af] hover:text-[#4a5260] transition-colors"
                               title="Add notes"
                             >
-                              {item.note ? <StickyNote className="w-3.5 h-3.5 text-green-400" /> : noteOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                              {item.note ? <StickyNote className="w-3.5 h-3.5 text-green-600" /> : noteOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
                             </button>
                           </div>
                           {noteOpen && (
@@ -672,8 +830,8 @@ export default function CaseDetail() {
                     <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[90%] rounded-xl px-3.5 py-2.5 text-xs leading-relaxed ${
                         m.role === 'user'
-                          ? 'bg-[#2e4e84]/20 text-white border border-[#2e4e84]/30 whitespace-pre-wrap'
-                          : 'bg-white text-[#4a5260] border border-[#D7D7D7] prose prose-invert prose-xs max-w-none prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5 prose-headings:my-2 prose-pre:bg-[#F4F4F4] prose-pre:border prose-pre:border-[#D7D7D7] prose-code:text-[#2e4e84] prose-strong:text-white prose-a:text-[#2e4e84] prose-table:border-collapse prose-th:border prose-th:border-[#D7D7D7] prose-th:bg-[#D7D7D7] prose-th:px-2 prose-th:py-1 prose-td:border prose-td:border-[#D7D7D7] prose-td:px-2 prose-td:py-1'
+                          ? 'bg-[#2e4e84] text-white border border-[#2e4e84] whitespace-pre-wrap'
+                          : 'bg-white text-[#1f2330] border border-[#D7D7D7] prose prose-slate prose-xs max-w-none prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5 prose-headings:my-2 prose-pre:bg-[#F4F4F4] prose-pre:border prose-pre:border-[#D7D7D7] prose-code:text-[#2e4e84] prose-strong:text-[#022569] prose-a:text-[#2e4e84] prose-table:border-collapse prose-th:border prose-th:border-[#D7D7D7] prose-th:bg-[#efefef] prose-th:px-2 prose-th:py-1 prose-td:border prose-td:border-[#D7D7D7] prose-td:px-2 prose-td:py-1'
                       }`}>
                         {m.role === 'assistant' && m.content
                           ? <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
@@ -688,7 +846,7 @@ export default function CaseDetail() {
                   <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="flex gap-2">
                     <input value={input} onChange={e => setInput(e.target.value)} disabled={streaming}
                       placeholder="Ask about this case..."
-                      className="flex-1 bg-[#F4F4F4] border border-[#D7D7D7] rounded-lg px-3 py-2 text-xs text-white placeholder:text-[#6b7280] focus:outline-none focus:border-[#2e4e84] disabled:opacity-50" />
+                      className="flex-1 bg-[#F4F4F4] border border-[#D7D7D7] rounded-lg px-3 py-2 text-xs text-[#1f2330] placeholder:text-[#9ca3af] focus:outline-none focus:border-[#2e4e84] disabled:opacity-50" />
                     <button type="submit" disabled={streaming || !input.trim()}
                       className="bg-[#2e4e84] hover:bg-[#022569] disabled:opacity-40 text-white p-2 rounded-lg transition-colors">
                       <Send className="w-4 h-4" />

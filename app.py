@@ -12,13 +12,13 @@ app = FastAPI(title="SNAP QC Early Warning System")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174"],
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 import server.hr1_store  # noqa: F401 — eagerly load HR1 chunks at startup
-from server.routes import cases, metrics, chat, health, documents, pipeline, settings
+from server.routes import cases, metrics, chat, health, documents, pipeline, settings, signals, profiles
 
 app.include_router(health.router, prefix="/api")
 app.include_router(cases.router, prefix="/api")
@@ -27,6 +27,8 @@ app.include_router(chat.router, prefix="/api")
 app.include_router(documents.router, prefix="/api")
 app.include_router(pipeline.router, prefix="/api")
 app.include_router(settings.router, prefix="/api")
+app.include_router(signals.router, prefix="/api")
+app.include_router(profiles.router, prefix="/api")
 
 # Serve React frontend
 frontend_dir = os.path.join(os.path.dirname(__file__), "frontend", "dist")
