@@ -10,13 +10,14 @@ logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(title="SNAP QC Early Warning System")
 
-_raw_origins = os.environ.get(
-    "ALLOWED_ORIGINS",
-    "https://snap-qc-3438839487639471.11.azure.databricksapps.com,"
-    "http://localhost:5173,"
-    "http://localhost:5174",
-)
-_allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+_is_local = os.environ.get("SNAP_ENV", "").lower() == "local"
+
+if "ALLOWED_ORIGINS" in os.environ:
+    _allowed_origins = [o.strip() for o in os.environ["ALLOWED_ORIGINS"].split(",") if o.strip()]
+elif _is_local:
+    _allowed_origins = ["http://localhost:5173", "http://localhost:5174"]
+else:
+    _allowed_origins = ["https://snap-qc-3438839487639471.11.azure.databricksapps.com"]
 
 app.add_middleware(
     CORSMiddleware,

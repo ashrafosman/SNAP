@@ -5,17 +5,28 @@ from pydantic import BaseModel
 from typing import Optional
 from server.lakebase import get_connection
 
-# Emails allowed to mutate profiles. Falls back to open when not set (local dev).
+_is_local = os.environ.get("SNAP_ENV", "").lower() == "local"
 _ADMIN_EMAILS_RAW = os.environ.get("PROFILE_ADMIN_EMAILS", "")
 _ADMIN_EMAILS = {e.strip().lower() for e in _ADMIN_EMAILS_RAW.split(",") if e.strip()}
 
 
 def _require_admin(request: Request):
-    """Raise 403 unless the caller is an allowed admin (or no list is configured)."""
+    """Gate profile mutations to admins.
+
+    Trust model: Databricks Apps routes all traffic through the platform proxy,
+    which (a) requires workspace authentication, (b) strips client-supplied
+    X-Forwarded-* headers, and (c) re-injects X-Forwarded-Email from the verified
+    identity token before forwarding to the app process.  The app is not reachable
+    directly from the internet, so the header cannot be spoofed by end-users.
+    See: https://docs.databricks.com/en/dev-tools/databricks-apps/app-development.html
+    """
     if not _ADMIN_EMAILS:
-        return  # not configured — allow all (local dev)
-    # Databricks Apps injects the authenticated user's email in this header
+        if _is_local:
+            return  # local dev — no allowlist configured, skip check
+        raise HTTPException(status_code=503, detail="PROFILE_ADMIN_EMAILS is not configured")
     caller = (request.headers.get("X-Forwarded-Email") or "").lower()
+    if not caller:
+        raise HTTPException(status_code=401, detail="Unauthenticated request")
     if caller not in _ADMIN_EMAILS:
         raise HTTPException(status_code=403, detail="Admin access required to modify profiles")
 
